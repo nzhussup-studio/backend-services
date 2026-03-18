@@ -1,0 +1,414 @@
+---
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+paths:
+  "/v1/base/work-experience":
+    get:
+      tags:
+      - work-experience-controller
+      operationId: listWorkExperience
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - work-experience-controller
+      operationId: updateWorkExperience
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/WorkExperience"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/WorkExperience"
+    post:
+      tags:
+      - work-experience-controller
+      operationId: createWorkExperience
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/WorkExperience"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/WorkExperience"
+    delete:
+      tags:
+      - work-experience-controller
+      operationId: deleteWorkExperience
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/WorkExperience"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/skill":
+    get:
+      tags:
+      - skill-controller
+      operationId: listSkill
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - skill-controller
+      operationId: updateSkill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Skill"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Skill"
+    post:
+      tags:
+      - skill-controller
+      operationId: createSkill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Skill"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Skill"
+    delete:
+      tags:
+      - skill-controller
+      operationId: deleteSkill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Skill"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/project":
+    get:
+      tags:
+      - project-controller
+      operationId: listProject
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - project-controller
+      operationId: updateProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Project"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Project"
+    post:
+      tags:
+      - project-controller
+      operationId: createProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Project"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Project"
+    delete:
+      tags:
+      - project-controller
+      operationId: deleteProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Project"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/education":
+    get:
+      tags:
+      - education-controller
+      operationId: listEducation
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - education-controller
+      operationId: updateEducation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Education"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Education"
+    post:
+      tags:
+      - education-controller
+      operationId: createEducation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Education"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Education"
+    delete:
+      tags:
+      - education-controller
+      operationId: deleteEducation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Education"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/certificate":
+    get:
+      tags:
+      - certificate-controller
+      operationId: listCertificate
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - certificate-controller
+      operationId: updateCertificate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Certificate"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Certificate"
+    post:
+      tags:
+      - certificate-controller
+      operationId: createCertificate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Certificate"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Certificate"
+    delete:
+      tags:
+      - certificate-controller
+      operationId: deleteCertificate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Certificate"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/cache/clearGlobalCache":
+    post:
+      tags:
+      - cache-controller
+      operationId: createCache
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: string
+components:
+  schemas:
+    WorkExperience:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        company:
+          type: string
+        location:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        position:
+          type: string
+        description:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32
+        techStack:
+          type: string
+    Skill:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        category:
+          type: string
+        skillNames:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        url:
+          type: string
+        techStack:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32
+    Education:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        institution:
+          type: string
+        location:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        degree:
+          type: string
+        thesis:
+          type: string
+        description:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32
+    Certificate:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        url:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32

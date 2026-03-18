@@ -1,0 +1,73 @@
+---
+openapi: 3.0.1
+info:
+  contact:
+    name: Nurzhanat Zhussup
+    url: https://github.com/nzhussup
+  description: This is the API for generating summary from user profile data.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Summarizer Service API
+  version: 1.0.0
+paths:
+  "/v1/health":
+    get:
+      description: Checks the connectivity and health of dependent services, particularly
+        Redis.
+      responses:
+        '200':
+          description: Status OK
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+        '500':
+          description: Redis connection failed
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+      summary: Health check endpoint
+      tags:
+      - health
+  "/v1/llm/summarize":
+    get:
+      description: Retrieves structured personal data (e.g., work experience, education),
+        generates a professional summary using a large language model (LLM), and returns
+        it in the requested language.
+      responses:
+        '200':
+          description: Generated professional summary
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error with error details
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+      summary: Generate professional profile summary
+      tags:
+      - summarizer
+      parameters:
+      - description: 'Language code for the summary output. Supported values: ''en''
+          (English), ''kz'' (Kazakh), ''de'' (German). Defaults to ''en''.'
+        in: query
+        name: lang
+        schema:
+          type: string
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      in: header
+      name: Authorization
+      type: apiKey

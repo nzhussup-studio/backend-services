@@ -1,0 +1,1270 @@
+---
+openapi: 3.0.1
+info:
+  title: Backend Services API
+  version: 1.0.0
+paths:
+  "/auth/validate":
+    post:
+      tags:
+      - auth-controller
+      operationId: validateToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/auth_service_ValidationRequest"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+  "/auth/login":
+    post:
+      tags:
+      - auth-controller
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/auth_service_AuthRequest"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+  "/v1/base/work-experience":
+    get:
+      tags:
+      - work-experience-controller
+      operationId: listWorkExperience
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - work-experience-controller
+      operationId: updateWorkExperience
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_WorkExperience"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_WorkExperience"
+    post:
+      tags:
+      - work-experience-controller
+      operationId: createWorkExperience
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_WorkExperience"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_WorkExperience"
+    delete:
+      tags:
+      - work-experience-controller
+      operationId: deleteWorkExperience
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_WorkExperience"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/skill":
+    get:
+      tags:
+      - skill-controller
+      operationId: listSkill
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - skill-controller
+      operationId: updateSkill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Skill"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Skill"
+    post:
+      tags:
+      - skill-controller
+      operationId: createSkill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Skill"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Skill"
+    delete:
+      tags:
+      - skill-controller
+      operationId: deleteSkill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Skill"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/project":
+    get:
+      tags:
+      - project-controller
+      operationId: listProject
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - project-controller
+      operationId: updateProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Project"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Project"
+    post:
+      tags:
+      - project-controller
+      operationId: createProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Project"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Project"
+    delete:
+      tags:
+      - project-controller
+      operationId: deleteProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Project"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/education":
+    get:
+      tags:
+      - education-controller
+      operationId: listEducation
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - education-controller
+      operationId: updateEducation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Education"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Education"
+    post:
+      tags:
+      - education-controller
+      operationId: createEducation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Education"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Education"
+    delete:
+      tags:
+      - education-controller
+      operationId: deleteEducation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Education"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/certificate":
+    get:
+      tags:
+      - certificate-controller
+      operationId: listCertificate
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - certificate-controller
+      operationId: updateCertificate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Certificate"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Certificate"
+    post:
+      tags:
+      - certificate-controller
+      operationId: createCertificate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Certificate"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Certificate"
+    delete:
+      tags:
+      - certificate-controller
+      operationId: deleteCertificate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Certificate"
+        required: true
+      responses:
+        '200':
+          description: OK
+  "/v1/base/cache/clearGlobalCache":
+    post:
+      tags:
+      - cache-controller
+      operationId: createCache
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: string
+  "/v1/user/public":
+    put:
+      tags:
+      - public-user-controller
+      operationId: updateUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user_service_User"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+    post:
+      tags:
+      - public-user-controller
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user_service_PublicUserRegistryRequest"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+    delete:
+      tags:
+      - public-user-controller
+      operationId: deleteUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user_service_User"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+  "/v1/user/admin":
+    get:
+      tags:
+      - admin-user-controller
+      operationId: findAll
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/user_service_User"
+    put:
+      tags:
+      - admin-user-controller
+      operationId: updateUser_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user_service_User"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+    post:
+      tags:
+      - admin-user-controller
+      operationId: registerUser_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user_service_AdminUserRegistryRequest"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+    delete:
+      tags:
+      - admin-user-controller
+      operationId: deleteUser_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user_service_User"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+  "/v1/album":
+    get:
+      description: Returns a preview list of albums, filtered by type
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      items:
+                        "$ref": "#/components/schemas/image_service_model.AlbumPreview"
+                      type: array
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Get album previews
+      tags:
+      - Album
+      parameters:
+      - description: Album type (public, semi-public, private, all)
+        in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - public
+          - semi-public
+          - private
+          - all
+          default: public
+    post:
+      description: Creates an album with basic metadata
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/image_service_model.AlbumPreview"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Create a new album
+      tags:
+      - Album
+      requestBody:
+        required: true
+        description: Album preview data
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/image_service_model.AlbumPreview"
+  "/v1/album/{id}":
+    delete:
+      description: Deletes the album and all associated data
+      responses:
+        '200':
+          description: Album deleted successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Delete an album
+      tags:
+      - Album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      description: Returns album metadata and images
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/image_service_model.Album"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Get a specific album by ID
+      tags:
+      - Album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    put:
+      description: Updates album metadata
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/image_service_model.AlbumPreview"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Update an album
+      tags:
+      - Album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        description: Updated album preview data
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/image_service_model.AlbumPreview"
+  "/v1/album/{id}/{imageID}":
+    delete:
+      description: Deletes an image by ID from the given album
+      responses:
+        '200':
+          description: Image deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      type: object
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '404':
+          description: Image Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Delete an image from an album
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        schema:
+          type: string
+    get:
+      description: Returns the raw image file for preview or download
+      responses:
+        '200':
+          description: Image file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Bad Request
+          content:
+            application/octet-stream:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Serve an image file
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        schema:
+          type: string
+  "/v1/album/{id}/{imageID}/rename":
+    patch:
+      description: Renames a specific image in an album to a new valid name (alphanumeric,
+        no path components)
+      responses:
+        '200':
+          description: Image renamed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/image_service_model.Image"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '404':
+          description: Image Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '409':
+          description: Conflict - Duplicate image name
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Rename an image in an album
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        schema:
+          type: string
+      - description: New name for the image (without extension)
+        in: query
+        name: newName
+        required: true
+        schema:
+          type: string
+  "/v1/album/{id}/upload":
+    post:
+      description: Upload one or more image files to the specified album
+      responses:
+        '201':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      items:
+                        "$ref": "#/components/schemas/image_service_model.Image"
+                      type: array
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '404':
+          description: Album Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Upload image(s) to an album
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file(s) to upload
+              required:
+              - file
+  "/v1/album/cache":
+    delete:
+      description: This endpoint clears the server-side cache for images.
+      responses:
+        '200':
+          description: Cache cleared successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Clear the image cache
+      tags:
+      - Cache
+  "/v1/album/health":
+    get:
+      description: Returns 200 OK if the service is up
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+      summary: Health check endpoint
+      tags:
+      - Health
+  "/v1/health":
+    get:
+      description: Checks the connectivity and health of dependent services, particularly
+        Redis.
+      responses:
+        '200':
+          description: Status OK
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+        '500':
+          description: Redis connection failed
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+      summary: Health check endpoint
+      tags:
+      - health
+  "/v1/llm/summarize":
+    get:
+      description: Retrieves structured personal data (e.g., work experience, education),
+        generates a professional summary using a large language model (LLM), and returns
+        it in the requested language.
+      responses:
+        '200':
+          description: Generated professional summary
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error with error details
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+      summary: Generate professional profile summary
+      tags:
+      - summarizer
+      parameters:
+      - description: 'Language code for the summary output. Supported values: ''en''
+          (English), ''kz'' (Kazakh), ''de'' (German). Defaults to ''en''.'
+        in: query
+        name: lang
+        schema:
+          type: string
+components:
+  schemas:
+    auth_service_ValidationRequest:
+      type: object
+      properties:
+        token:
+          type: string
+    auth_service_AuthRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    base_service_WorkExperience:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        company:
+          type: string
+        location:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        position:
+          type: string
+        description:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32
+        techStack:
+          type: string
+    base_service_Skill:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        category:
+          type: string
+        skillNames:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32
+    base_service_Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        url:
+          type: string
+        techStack:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32
+    base_service_Education:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        institution:
+          type: string
+        location:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        degree:
+          type: string
+        thesis:
+          type: string
+        description:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32
+    base_service_Certificate:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        url:
+          type: string
+        displayOrder:
+          type: integer
+          format: int32
+    user_service_User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+    user_service_PublicUserRegistryRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    user_service_AdminUserRegistryRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+    image_service_model.Album:
+      properties:
+        date:
+          type: string
+        desc:
+          type: string
+        id:
+          type: string
+        images:
+          items:
+            "$ref": "#/components/schemas/image_service_model.Image"
+          type: array
+        title:
+          type: string
+        type:
+          "$ref": "#/components/schemas/image_service_model.AlbumType"
+      required:
+      - title
+      - type
+      type: object
+    image_service_model.AlbumPreview:
+      properties:
+        date:
+          type: string
+        desc:
+          type: string
+        id:
+          type: string
+        image_count:
+          type: integer
+        preview_image:
+          type: string
+        title:
+          type: string
+        type:
+          "$ref": "#/components/schemas/image_service_model.AlbumType"
+      required:
+      - title
+      - type
+      type: object
+    image_service_model.AlbumType:
+      enum:
+      - private
+      - semi-public
+      - public
+      type: string
+      x-enum-varnames:
+      - Private
+      - SemiPublic
+      - Public
+    image_service_model.ErrorDetails:
+      properties:
+        message:
+          type: string
+        status:
+          type: integer
+      type: object
+    image_service_model.ErrorResponse:
+      properties:
+        error:
+          "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+      type: object
+    image_service_model.Image:
+      properties:
+        data:
+          items:
+            type: integer
+          type: array
+        id:
+          type: string
+        type:
+          "$ref": "#/components/schemas/image_service_model.ImageType"
+        url:
+          type: string
+      type: object
+    image_service_model.ImageType:
+      enum:
+      - image/jpeg
+      - image/jpg
+      - image/png
+      - image/heic
+      type: string
+      x-enum-varnames:
+      - JPEG
+      - JPG
+      - PNG
+      - HEIC
+    image_service_model.SuccessResponse:
+      properties:
+        data: {}
+        message:
+          type: string
+        status:
+          type: integer
+      type: object
+  securitySchemes:
+    image_service_ApiKeyAuth:
+      in: header
+      name: Authorization
+      type: apiKey
+    llm_service_ApiKeyAuth:
+      in: header
+      name: Authorization
+      type: apiKey
+tags: []

@@ -1,0 +1,56 @@
+---
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+paths:
+  "/auth/validate":
+    post:
+      tags:
+      - auth-controller
+      operationId: validateToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ValidationRequest"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+  "/auth/login":
+    post:
+      tags:
+      - auth-controller
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/AuthRequest"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: object
+components:
+  schemas:
+    ValidationRequest:
+      type: object
+      properties:
+        token:
+          type: string
+    AuthRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string

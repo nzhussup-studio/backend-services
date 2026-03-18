@@ -1,2 +1,8 @@
-.idea
-**/__pycache__/*
+**/.openapi-cache/
+**/__pycache__/
+**/target/
+.DS_Store
+.idea/
+.vscode/
+*.log
+*.swp

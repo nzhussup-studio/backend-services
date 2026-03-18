@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .csrf(csfr -> csfr.disable())
                 .authorizeHttpRequests(requests -> {
                     requests.requestMatchers(AppConfig.baseApiPath + "public").permitAll();
-                    requests.requestMatchers("/v1/user/v3/api-docs/**", "/v1/user/swagger-ui/**").permitAll();
+                    requests.requestMatchers("/v1/user/v3/api-docs*", "/v1/user/v3/api-docs/**", "/v1/user/swagger-ui/**").permitAll();
                     requests.anyRequest().hasRole("ADMIN");
                 })
                 .httpBasic(Customizer.withDefaults())

@@ -1,0 +1,619 @@
+---
+openapi: 3.0.1
+info:
+  contact:
+    name: Nurzhanat Zhussup
+    url: https://github.com/nzhussup
+  description: This is the API for managing image albums and uploads.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Image Service API
+  version: 1.0.0
+paths:
+  "/v1/album":
+    get:
+      description: Returns a preview list of albums, filtered by type
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      items:
+                        "$ref": "#/components/schemas/model.AlbumPreview"
+                      type: array
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+      security:
+      - ApiKeyAuth: []
+      summary: Get album previews
+      tags:
+      - Album
+      parameters:
+      - description: Album type (public, semi-public, private, all)
+        in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - public
+          - semi-public
+          - private
+          - all
+          default: public
+    post:
+      description: Creates an album with basic metadata
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/model.AlbumPreview"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new album
+      tags:
+      - Album
+      requestBody:
+        required: true
+        description: Album preview data
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/model.AlbumPreview"
+  "/v1/album/{id}":
+    delete:
+      description: Deletes the album and all associated data
+      responses:
+        '200':
+          description: Album deleted successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.SuccessResponse"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an album
+      tags:
+      - Album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      description: Returns album metadata and images
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/model.Album"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+      security:
+      - ApiKeyAuth: []
+      summary: Get a specific album by ID
+      tags:
+      - Album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    put:
+      description: Updates album metadata
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/model.AlbumPreview"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+      security:
+      - ApiKeyAuth: []
+      summary: Update an album
+      tags:
+      - Album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        description: Updated album preview data
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/model.AlbumPreview"
+  "/v1/album/{id}/{imageID}":
+    delete:
+      description: Deletes an image by ID from the given album
+      responses:
+        '200':
+          description: Image deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      type: object
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '404':
+          description: Image Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an image from an album
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        schema:
+          type: string
+    get:
+      description: Returns the raw image file for preview or download
+      responses:
+        '200':
+          description: Image file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Bad Request
+          content:
+            application/octet-stream:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+      security:
+      - ApiKeyAuth: []
+      summary: Serve an image file
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        schema:
+          type: string
+  "/v1/album/{id}/{imageID}/rename":
+    patch:
+      description: Renames a specific image in an album to a new valid name (alphanumeric,
+        no path components)
+      responses:
+        '200':
+          description: Image renamed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/model.Image"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '404':
+          description: Image Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '409':
+          description: Conflict - Duplicate image name
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+      security:
+      - ApiKeyAuth: []
+      summary: Rename an image in an album
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        schema:
+          type: string
+      - description: New name for the image (without extension)
+        in: query
+        name: newName
+        required: true
+        schema:
+          type: string
+  "/v1/album/{id}/upload":
+    post:
+      description: Upload one or more image files to the specified album
+      responses:
+        '201':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      items:
+                        "$ref": "#/components/schemas/model.Image"
+                      type: array
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '404':
+          description: Album Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+      security:
+      - ApiKeyAuth: []
+      summary: Upload image(s) to an album
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file(s) to upload
+              required:
+              - file
+  "/v1/album/cache":
+    delete:
+      description: This endpoint clears the server-side cache for images.
+      responses:
+        '200':
+          description: Cache cleared successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.SuccessResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+      security:
+      - ApiKeyAuth: []
+      summary: Clear the image cache
+      tags:
+      - Cache
+  "/v1/album/health":
+    get:
+      description: Returns 200 OK if the service is up
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.SuccessResponse"
+      summary: Health check endpoint
+      tags:
+      - Health
+components:
+  schemas:
+    model.Album:
+      properties:
+        date:
+          type: string
+        desc:
+          type: string
+        id:
+          type: string
+        images:
+          items:
+            "$ref": "#/components/schemas/model.Image"
+          type: array
+        title:
+          type: string
+        type:
+          "$ref": "#/components/schemas/model.AlbumType"
+      required:
+      - title
+      - type
+      type: object
+    model.AlbumPreview:
+      properties:
+        date:
+          type: string
+        desc:
+          type: string
+        id:
+          type: string
+        image_count:
+          type: integer
+        preview_image:
+          type: string
+        title:
+          type: string
+        type:
+          "$ref": "#/components/schemas/model.AlbumType"
+      required:
+      - title
+      - type
+      type: object
+    model.AlbumType:
+      enum:
+      - private
+      - semi-public
+      - public
+      type: string
+      x-enum-varnames:
+      - Private
+      - SemiPublic
+      - Public
+    model.ErrorDetails:
+      properties:
+        message:
+          type: string
+        status:
+          type: integer
+      type: object
+    model.ErrorResponse:
+      properties:
+        error:
+          "$ref": "#/components/schemas/model.ErrorDetails"
+      type: object
+    model.Image:
+      properties:
+        data:
+          items:
+            type: integer
+          type: array
+        id:
+          type: string
+        type:
+          "$ref": "#/components/schemas/model.ImageType"
+        url:
+          type: string
+      type: object
+    model.ImageType:
+      enum:
+      - image/jpeg
+      - image/jpg
+      - image/png
+      - image/heic
+      type: string
+      x-enum-varnames:
+      - JPEG
+      - JPG
+      - PNG
+      - HEIC
+    model.SuccessResponse:
+      properties:
+        data: {}
+        message:
+          type: string
+        status:
+          type: integer
+      type: object
+  securitySchemes:
+    ApiKeyAuth:
+      in: header
+      name: Authorization
+      type: apiKey

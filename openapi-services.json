@@ -1,0 +1,9 @@
+{
+  "services": [
+    "auth-service",
+    "base-service",
+    "user-service",
+    "image-service",
+    "llm-service"
+  ]
+}
