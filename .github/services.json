@@ -1,0 +1,59 @@
+{
+  "services": [
+    {
+      "name": "api-gateway",
+      "path": "api-gateway",
+      "lang": "go",
+      "ci_mode": "full",
+      "deployment": "backend-api-gateway",
+      "image_name": "backend-api-gateway"
+    },
+    {
+      "name": "auth-service",
+      "path": "auth-service",
+      "lang": "java",
+      "ci_mode": "full",
+      "deployment": "backend-auth-service",
+      "image_name": "backend-auth-service"
+    },
+    {
+      "name": "base-service",
+      "path": "base-service",
+      "lang": "java",
+      "ci_mode": "full",
+      "deployment": "backend-base-service",
+      "image_name": "backend-base-service"
+    },
+    {
+      "name": "image-service",
+      "path": "image-service",
+      "lang": "go",
+      "ci_mode": "full",
+      "deployment": "backend-image-service",
+      "image_name": "backend-image-service"
+    },
+    {
+      "name": "llm-service",
+      "path": "llm-service",
+      "lang": "go",
+      "ci_mode": "full",
+      "deployment": "backend-llm-service",
+      "image_name": "backend-llm-service"
+    },
+    {
+      "name": "user-service",
+      "path": "user-service",
+      "lang": "java",
+      "ci_mode": "full",
+      "deployment": "backend-user-service",
+      "image_name": "backend-user-service"
+    },
+    {
+      "name": "redis-server",
+      "path": "redis-server",
+      "ci_mode": "build-deploy",
+      "deployment": "backend-redis-server",
+      "image_name": "backend-redis-server"
+    }
+  ]
+}
