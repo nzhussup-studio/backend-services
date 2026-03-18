@@ -3,19 +3,10 @@ name: Backend Services CI/CD
 on:
   push:
     branches:
-      - "**"
-    paths:
-      - ".github/services.json"
-      - "api-gateway/**"
-      - "auth-service/**"
-      - "base-service/**"
-      - "image-service/**"
-      - "llm-service/**"
-      - "redis-server/**"
-      - "user-service/**"
-      - ".github/templates/**"
-      - ".github/scripts/**"
-      - ".github/workflows/cicd.yml"
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -23,36 +14,18 @@ jobs:
     name: Prepare Matrix
     runs-on: ubuntu-latest
     outputs:
-      build_changed: ${{ steps.prepare.outputs.build_changed }}
       build_matrix: ${{ steps.prepare.outputs.build_matrix }}
       checked_changed: ${{ steps.prepare.outputs.checked_changed }}
       checked_matrix: ${{ steps.prepare.outputs.checked_matrix }}
-      deployments: ${{ steps.prepare.outputs.deployments }}
       deployments_joined: ${{ steps.prepare.outputs.deployments_joined }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Build changed-services matrix
+      - name: Build service matrix
         id: prepare
         shell: bash
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            CHANGED_FILES=""
-          else
-            BEFORE_SHA="${{ github.event.before }}"
-            if [[ -z "$BEFORE_SHA" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
-              BEFORE_SHA="$(git rev-parse HEAD^)"
-            fi
-            CHANGED_FILES="$(git diff --name-only "$BEFORE_SHA" "${{ github.sha }}")"
-          fi
-
-          export CHANGED_FILES
-          python3 .github/scripts/prepare_matrix.py
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: python3 .github/scripts/prepare_matrix.py
 
   quality:
     name: Quality
@@ -102,7 +75,7 @@ jobs:
       - test
     if: |
       always() &&
-      needs.prepare.outputs.build_changed == 'true' &&
+      github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       (needs.test.result == 'success' || needs.test.result == 'skipped')
     strategy:
@@ -128,11 +101,11 @@ jobs:
       - prepare
       - build
     if: |
-      needs.prepare.outputs.build_changed == 'true' &&
+      github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       needs.build.result == 'success'
     steps:
-      - name: Restart changed deployments
+      - name: Restart deployments
         uses: appleboy/ssh-action@v1.2.0
         env:
           DEPLOYMENTS_JOINED: ${{ needs.prepare.outputs.deployments_joined }}
