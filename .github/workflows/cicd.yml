@@ -119,7 +119,7 @@ jobs:
             if [[ -z "${DEPLOYMENTS_JOINED:-}" ]]; then
               exit 0
             fi
-            IFS=',' read -r -a deployments <<< "$DEPLOYMENTS_JOINED"
-            for deployment in "${deployments[@]}"; do
+            printf '%s\n' "$DEPLOYMENTS_JOINED" | tr ',' '\n' | while IFS= read -r deployment; do
+              [[ -n "$deployment" ]] || continue
               kubectl rollout restart deployment/"$deployment"
             done
