@@ -15,4 +15,4 @@ with open(environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
     f.write(f"build_matrix={json.dumps(services, separators=(',', ':'))}\n")
     f.write(f"checked_changed={'true' if checked else 'false'}\n")
     f.write(f"checked_matrix={json.dumps(checked, separators=(',', ':'))}\n")
-    f.write(f"deployments_joined={' '.join(deployments)}\n")
+    f.write(f"deployments_joined={','.join(deployments)}\n")
