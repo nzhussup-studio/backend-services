@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/nzhussup-studio/backend-services/compare/v1.1.0...v1.2.0) (2026-03-19)
+
+
+### Features
+
+* add dev env ([29434f3](https://github.com/nzhussup-studio/backend-services/commit/29434f3aad6e20f043b45ad9cd26fe70131ae803))
+* add release guide ([67804be](https://github.com/nzhussup-studio/backend-services/commit/67804be0a9f3ffe85194644cb9e5fd215cb1a4ee))
+
+
+### Bug Fixes
+
+* prepare for dev env ([25b7512](https://github.com/nzhussup-studio/backend-services/commit/25b75128b146587c18b41a26450b10558568b9e1))
+* reference redis directly from opensource image ([56bb00e](https://github.com/nzhussup-studio/backend-services/commit/56bb00e657dbf35684c5843e0d2a6cc5899d56f3))
+
 ## 1.1.0 (2026-03-19)
 
 
