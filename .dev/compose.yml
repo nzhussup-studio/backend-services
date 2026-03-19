@@ -1,0 +1,183 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: backend-services-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-personal_website_db}
+      POSTGRES_USER: ${POSTGRES_USER:-nzhussup}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nzhussup}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nzhussup} -d ${POSTGRES_DB:-personal_website_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - backend-internal
+
+  redis:
+    image: redis:7.4
+    container_name: backend-services-redis
+    command: ["redis-server", "--save", "900", "1", "--save", "300", "10", "--save", "60", "10000", "--loglevel", "notice"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - redis-data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - backend-internal
+
+  auth-service:
+    build:
+      context: ../auth-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_HOST: postgres
+      SPRING_DATASOURCE_PORT: 5432
+      SPRING_DATASOURCE_DB: ${POSTGRES_DB:-personal_website_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nzhussup}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nzhussup}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SECURITY_JWT_SECRET_KEY: ${SECURITY_JWT_SECRET_KEY:-local-dev-secret-key}
+    networks:
+      - backend-internal
+
+  base-service:
+    build:
+      context: ../base-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8083
+      SPRING_DATASOURCE_HOST: postgres
+      SPRING_DATASOURCE_PORT: 5432
+      SPRING_DATASOURCE_DB: ${POSTGRES_DB:-personal_website_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nzhussup}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nzhussup}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    networks:
+      - backend-internal
+
+  user-service:
+    build:
+      context: ../user-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8083
+      SPRING_DATASOURCE_HOST: postgres
+      SPRING_DATASOURCE_PORT: 5432
+      SPRING_DATASOURCE_DB: ${POSTGRES_DB:-personal_website_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nzhussup}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nzhussup}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    networks:
+      - backend-internal
+
+  db-seed:
+    image: postgres:17
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      base-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-personal_website_db}
+      POSTGRES_USER: ${POSTGRES_USER:-nzhussup}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nzhussup}
+    volumes:
+      - ./seed.sql:/seed/seed.sql:ro
+      - ./seed.sh:/seed/seed.sh:ro
+    entrypoint: ["/bin/sh", "/seed/seed.sh"]
+    networks:
+      - backend-internal
+
+  image-service:
+    build:
+      context: ../image-service
+    depends_on:
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    environment:
+      API_GATEWAY_URL: http://api-gateway:8082
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      GIN_MODE: release
+    volumes:
+      - image-data:/app/var/images
+    networks:
+      - backend-internal
+
+  llm-service:
+    build:
+      context: ../llm-service
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      API_GATEWAY_URL: http://api-gateway:8082
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_API_URL: ${OPENROUTER_API_URL:-https://openrouter.ai/api/v1/chat/completions}
+    networks:
+      - backend-internal
+
+  api-gateway:
+    build:
+      context: ../api-gateway
+    depends_on:
+      auth-service:
+        condition: service_started
+      base-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      image-service:
+        condition: service_started
+      llm-service:
+        condition: service_started
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8083
+      BASE_SERVICE_URL: http://base-service:8010
+      USER_SERVICE_URL: http://user-service:8084
+      IMAGE_SERVICE_URL: http://image-service:8085
+      LLM_SERVICE_URL: http://llm-service:8086
+    ports:
+      - "${API_GATEWAY_PORT:-8082}:8082"
+    networks:
+      - backend-internal
+
+networks:
+  backend-internal:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  image-data:
