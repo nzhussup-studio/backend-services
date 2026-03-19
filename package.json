@@ -1,0 +1,29 @@
+{
+  "name": "backend-services",
+  "version": "1.0.0",
+  "description": "This repository contains the backend runtime for `nzhussup.com` and its admin ecosystem. It is organized as a set of focused services rather than a single application, which keeps deployment, scaling, and operational ownership explicit.",
+  "main": "index.js",
+  "scripts": {
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nzhussup-studio/backend-services.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nzhussup-studio/backend-services/issues"
+  },
+  "homepage": "https://github.com/nzhussup-studio/backend-services#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "husky": "^9.1.7",
+    "standard-version": "^9.5.0"
+  }
+}
