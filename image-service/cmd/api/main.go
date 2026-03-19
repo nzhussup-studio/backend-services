@@ -25,35 +25,24 @@ import (
 // @in header
 // @name Authorization
 func main() {
-
-	discoveryConfig := &discoveryConfig{
-		eurekaURL:   "http://discovery-server.default.svc.cluster.local:8761/eureka",
-		appName:     "image-service",
-		refreshRate: 30,
-		servicesConfig: &servicesConfig{
-			authService: "auth-service",
-		},
-	}
-
 	var port int = 8085
 
 	cfg := config{
-		addr:            fmt.Sprintf(":%d", port),
-		port:            port,
-		storagePath:     "var/images",
-		apiBasePath:     "/v1/album",
-		discoveryConfig: discoveryConfig,
+		addr:          fmt.Sprintf(":%d", port),
+		port:          port,
+		storagePath:   "var/images",
+		apiBasePath:   "/v1/album",
 		redisConfig: &redisConfig{
 			addr: fmt.Sprintf(
 				"%s:%d",
-				env.GetString("REDIS_HOST", "redis-service.default.svc.cluster.local"),
+				env.GetString("REDIS_HOST", "localhost"),
 				env.GetInt("REDIS_PORT", 6379)),
 			password: "",
 			db:       0,
 			duration: 24 * time.Hour,
 		},
-		apiGatewayURL: "https://api.nzhussup.com",
-		kafkaConfig:   &kafkaConfig{
+		apiGatewayURL: env.GetString("API_GATEWAY_URL", "http://localhost:8082"),
+		kafkaConfig: &kafkaConfig{
 			// brokerList: []string{
 			// 	env.GetString("KAFKA_BROKER_1", "kafka-broker-1.default.svc.cluster.local:29092"),
 			// },

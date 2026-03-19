@@ -29,7 +29,7 @@ public class AuthServiceFilter implements Filter {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String AUTH_SERVICE_URL = System.getenv("AUTH_SERVICE_URL");
+    private static final String AUTH_SERVICE_URL = System.getenv().getOrDefault("AUTH_SERVICE_URL", "http://localhost:8083");
 
     private final HttpClient httpClient;
 

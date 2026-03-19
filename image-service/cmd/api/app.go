@@ -30,25 +30,13 @@ type app struct {
 }
 
 type config struct {
-	addr            string
-	port            int
-	storagePath     string
-	apiBasePath     string
-	discoveryConfig *discoveryConfig
-	redisConfig     *redisConfig
-	apiGatewayURL   string
-	kafkaConfig     *kafkaConfig
-}
-
-type discoveryConfig struct {
-	eurekaURL      string
-	appName        string
-	refreshRate    int
-	servicesConfig *servicesConfig
-}
-
-type servicesConfig struct {
-	authService string
+	addr          string
+	port          int
+	storagePath   string
+	apiBasePath   string
+	redisConfig   *redisConfig
+	apiGatewayURL string
+	kafkaConfig   *kafkaConfig
 }
 
 type redisConfig struct {

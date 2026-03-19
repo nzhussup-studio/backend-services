@@ -27,7 +27,7 @@ import (
 func main() {
 	slog.Info("Starting LLM service...")
 
-	API_GATEWAY_URL := env.GetString("API_GATEWAY_URL", "http://api-gateway.default.svc.cluster.local:8082")
+	API_GATEWAY_URL := env.GetString("API_GATEWAY_URL", "http://localhost:8082")
 
 	config := &config{
 		appConfig: &appConfig{
@@ -53,7 +53,7 @@ func main() {
 		redisConfig: &redisConfig{
 			addr: fmt.Sprintf(
 				"%s:%d",
-				env.GetString("REDIS_HOST", "redis-service.default.svc.cluster.local"),
+				env.GetString("REDIS_HOST", "localhost"),
 				env.GetInt("REDIS_PORT", 6379),
 			),
 			duration: 30 * 24 * time.Hour, // 30 days
