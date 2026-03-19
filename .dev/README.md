@@ -7,6 +7,7 @@ This directory contains the local Docker Compose setup for the backend platform.
 The compose stack includes:
 
 - PostgreSQL
+- Keycloak
 - Redis
 - `auth-service`
 - `base-service`
@@ -19,6 +20,7 @@ The compose stack includes:
 Only these ports are exposed to the host:
 
 - `8082` for `api-gateway`
+- `8081` for Keycloak
 - `5432` for PostgreSQL
 - `6379` for Redis
 
@@ -33,6 +35,49 @@ docker compose -f backend-services/.dev/compose.yml up --build
 ```
 
 The stack works without a `.env` file because the compose file already defines defaults for all required variables.
+
+## Keycloak
+
+The local stack includes a Keycloak instance for IAM migration work.
+
+- URL: `http://localhost:8081`
+- admin username: `root`
+- admin password: `root`
+- realm: `backend-auth-dev`
+- shared realm template: `keycloak-service/backend-auth-realm.template.json`
+- dev user seed file: `.dev/.keycloak/dev-users.json` mounted outside Keycloak's import directory
+- published on all host interfaces via `0.0.0.0:${KEYCLOAK_PORT:-8081}`
+
+The admin credentials default to `root:root` and can be overridden with:
+
+```bash
+KEYCLOAK_ADMIN_USERNAME=your_user KEYCLOAK_ADMIN_PASSWORD=your_pass docker compose -f backend-services/.dev/compose.yml up --build
+```
+
+If you want Keycloak to behave like it is already behind a dedicated host or subdomain, set the hostname explicitly:
+
+```bash
+KEYCLOAK_HOSTNAME=auth.local.nzhussup.dev docker compose -f backend-services/.dev/compose.yml up --build
+```
+
+For free-form local access by IP or alternate hostnames, the defaults keep hostname checks relaxed:
+
+- `KC_HOSTNAME_STRICT=false`
+- `KC_HOSTNAME_STRICT_HTTPS=false`
+- `KC_PROXY_HEADERS=xforwarded`
+
+The local stack also patches the `master` realm to `sslRequired=NONE` after startup so the admin console works over plain HTTP on localhost.
+
+The dev render currently configures:
+
+- realm roles `ROLE_ADMIN` and `ROLE_USER`, with `ROLE_USER` as the default role for new users
+- confidential client `backend-auth-client`
+- public client `frontend-admin-auth-client`
+- self-service user registration enabled
+- Google and GitHub identity providers enabled only when credentials are provided
+- local users `admin` and `jane.user` through the dev-only users JSON
+
+Keycloak persists its state in a dedicated PostgreSQL database named `keycloak` by default. The local stack creates that database automatically through a small init container before Keycloak starts, so it also works with existing Postgres volumes.
 
 ## Optional Environment Overrides
 

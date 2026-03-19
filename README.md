@@ -29,6 +29,9 @@ This repository contains the backend runtime for `nzhussup.dev` and its admin ec
 - `llm-service`  
   LLM-backed capabilities used by the platform.
 
+- `keycloak-service`
+  Keycloak image source, production realm template, and startup rendering logic for platform IAM.
+
 ## Stack
 
 - `Go` for lightweight network services
@@ -48,6 +51,16 @@ The repository uses a single manifest-driven CI/CD pipeline defined under `.gith
 ## Structure
 
 Each service is isolated in its own top-level directory with its own code, build definition, and runtime concerns. Shared CI/CD configuration lives under `.github/`.
+
+## Keycloak
+
+Production Keycloak source now lives under `keycloak-service/`.
+
+It contains:
+
+- a `Dockerfile` based on the official Keycloak image
+- a production realm template kept as a standalone JSON file
+- an entrypoint that renders runtime secrets into the import file before startup
 
 ## OpenAPI Generation
 
