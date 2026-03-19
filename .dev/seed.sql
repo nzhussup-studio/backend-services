@@ -106,19 +106,19 @@ INSERT INTO education (institution, location, start_date, end_date, degree, thes
 INSERT INTO projects (name, url, tech_stack, display_order) VALUES
   (
     'Personal Platform',
-    'https://nzhussup.com',
+    'https://nzhussup.dev',
     'Go,Java,React,PostgreSQL,Redis,Docker,Kubernetes',
     1
   ),
   (
     'Web Admin Panel',
-    'https://admin.nzhussup.com',
+    'https://admin.nzhussup.dev',
     'React,TypeScript,Vite,Jest,Bootstrap',
     2
   ),
   (
     'Backend Services',
-    'https://api.nzhussup.com',
+    'https://api.nzhussup.dev',
     'Go,Spring Boot,PostgreSQL,Redis,OpenAPI',
     3
   ),
@@ -130,13 +130,13 @@ INSERT INTO projects (name, url, tech_stack, display_order) VALUES
   ),
   (
     'CV Generator Workflow',
-    'https://nzhussup.com/cv',
+    'https://nzhussup.dev/cv',
     'React,LLM,REST API,PDF Export',
     5
   ),
   (
     'Image Album Service',
-    'https://api.nzhussup.com/v1/album',
+    'https://api.nzhussup.dev/v1/album',
     'Go,Redis,File Storage,REST',
     6
   );

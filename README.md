@@ -7,7 +7,7 @@
 [![GitHub_Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/features/actions)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-spec%20generation-6BA539?style=for-the-badge&logo=openapiinitiative&logoColor=white)](https://www.openapis.org/)
 
-This repository contains the backend runtime for `nzhussup.com` and its admin ecosystem. It is organized as a set of focused services rather than a single application, which keeps deployment, scaling, and operational ownership explicit.
+This repository contains the backend runtime for `nzhussup.dev` and its admin ecosystem. It is organized as a set of focused services rather than a single application, which keeps deployment, scaling, and operational ownership explicit.
 
 ## Services
 
