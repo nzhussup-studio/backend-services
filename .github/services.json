@@ -49,11 +49,11 @@
       "image_name": "backend-user-service"
     },
     {
-      "name": "keycloak-service",
-      "path": "keycloak-service",
+      "name": "keycloak-server",
+      "path": "keycloak-server",
       "ci_mode": "build-deploy",
-      "deployment": "backend-keycloak",
-      "image_name": "backend-keycloak"
+      "deployment": "backend-keycloak-server",
+      "image_name": "backend-keycloak-server"
     }
   ]
 }
