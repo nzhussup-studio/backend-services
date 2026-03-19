@@ -47,6 +47,13 @@
       "ci_mode": "full",
       "deployment": "backend-user-service",
       "image_name": "backend-user-service"
+    },
+    {
+      "name": "keycloak-service",
+      "path": "keycloak-service",
+      "ci_mode": "build-deploy",
+      "deployment": "backend-keycloak",
+      "image_name": "backend-keycloak"
     }
   ]
 }

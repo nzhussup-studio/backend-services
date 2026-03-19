@@ -1,0 +1,41 @@
+[
+  {
+    "username": "admin",
+    "enabled": true,
+    "firstName": "Root",
+    "lastName": "Admin",
+    "email": "admin@backend-services.local",
+    "emailVerified": true,
+    "createdTimestamp": 1742385600000,
+    "credentials": [
+      {
+        "type": "password",
+        "value": "admin123!",
+        "temporary": false
+      }
+    ],
+    "realmRoles": [
+      "ROLE_ADMIN",
+      "ROLE_USER"
+    ]
+  },
+  {
+    "username": "jane.user",
+    "enabled": true,
+    "firstName": "Jane",
+    "lastName": "User",
+    "email": "jane.user@backend-services.local",
+    "emailVerified": true,
+    "createdTimestamp": 1742389200000,
+    "credentials": [
+      {
+        "type": "password",
+        "value": "user123!",
+        "temporary": false
+      }
+    ],
+    "realmRoles": [
+      "ROLE_USER"
+    ]
+  }
+]
