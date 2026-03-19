@@ -45,7 +45,7 @@ validate_service_dir() {
   service_name="$(basename "$service_dir")"
 
   case "$service_name" in
-    redis-server|api-gateway)
+    api-gateway)
       fail "OpenAPI generation is not supported for ${service_name}."
       ;;
   esac

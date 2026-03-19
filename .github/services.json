@@ -47,13 +47,6 @@
       "ci_mode": "full",
       "deployment": "backend-user-service",
       "image_name": "backend-user-service"
-    },
-    {
-      "name": "redis-server",
-      "path": "redis-server",
-      "ci_mode": "build-deploy",
-      "deployment": "backend-redis-server",
-      "image_name": "backend-redis-server"
     }
   ]
 }
