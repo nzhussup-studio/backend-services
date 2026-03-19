@@ -9,6 +9,12 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
 jobs:
   prepare:
     name: Prepare Matrix
@@ -20,7 +26,7 @@ jobs:
       deployments_joined: ${{ steps.prepare.outputs.deployments_joined }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build service matrix
         id: prepare
@@ -38,7 +44,7 @@ jobs:
         service: ${{ fromJson(needs.prepare.outputs.checked_matrix) }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run quality checks
         uses: ./.github/templates/quality
@@ -59,7 +65,7 @@ jobs:
         service: ${{ fromJson(needs.prepare.outputs.checked_matrix) }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run tests
         uses: ./.github/templates/test
@@ -84,7 +90,7 @@ jobs:
         service: ${{ fromJson(needs.prepare.outputs.build_matrix) }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build and push Docker image
         uses: ./.github/templates/build
@@ -106,7 +112,7 @@ jobs:
       needs.build.result == 'success'
     steps:
       - name: Restart deployments
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.4
         env:
           DEPLOYMENTS_JOINED: ${{ needs.prepare.outputs.deployments_joined }}
         with:
