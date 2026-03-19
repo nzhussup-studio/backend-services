@@ -28,10 +28,10 @@ func main() {
 	var port int = 8085
 
 	cfg := config{
-		addr:          fmt.Sprintf(":%d", port),
-		port:          port,
-		storagePath:   "var/images",
-		apiBasePath:   "/v1/album",
+		addr:        fmt.Sprintf(":%d", port),
+		port:        port,
+		storagePath: "var/images",
+		apiBasePath: "/v1/album",
 		redisConfig: &redisConfig{
 			addr: fmt.Sprintf(
 				"%s:%d",
@@ -42,7 +42,7 @@ func main() {
 			duration: 24 * time.Hour,
 		},
 		apiGatewayURL: env.GetString("API_GATEWAY_URL", "http://localhost:8082"),
-		kafkaConfig: &kafkaConfig{
+		kafkaConfig:   &kafkaConfig{
 			// brokerList: []string{
 			// 	env.GetString("KAFKA_BROKER_1", "kafka-broker-1.default.svc.cluster.local:29092"),
 			// },

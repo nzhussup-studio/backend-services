@@ -17,6 +17,7 @@ runs:
       uses: actions/setup-go@v5
       with:
         go-version-file: ${{ inputs.service_path }}/go.mod
+        cache-dependency-path: ${{ inputs.service_path }}/go.sum
 
     - name: Set up Java
       if: ${{ inputs.lang == 'java' }}
