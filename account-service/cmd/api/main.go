@@ -31,25 +31,18 @@ func main() {
 		port:        port,
 		apiBasePath: env.GetString("API_BASE_PATH", "/v1/account"),
 		keycloakConfig: &keycloakConfig{
-			baseURL:             env.GetString("KEYCLOAK_BASE_URL", "http://localhost:8081"),
-			realm:               env.GetString("KEYCLOAK_REALM", "backend-auth-dev"),
-			adminRealm:          env.GetString("KEYCLOAK_ADMIN_REALM", "master"),
-			adminClientID:       env.GetString("KEYCLOAK_ADMIN_CLIENT_ID", "admin-cli"),
-			adminClientSecret:   env.GetString("KEYCLOAK_ADMIN_CLIENT_SECRET", ""),
-			jwkSetURL:           env.GetString("KEYCLOAK_JWK_SET_URL", "http://localhost:8081/realms/backend-auth-dev/protocol/openid-connect/certs"),
-			expectedIssuer:      env.GetString("KEYCLOAK_EXPECTED_ISSUER", ""),
-			expectedAudience:    env.GetString("KEYCLOAK_EXPECTED_AUDIENCE", ""),
-			httpTimeout:         10 * time.Second,
-			frontendLogoutURL:   env.GetString("KEYCLOAK_FRONTEND_LOGOUT_URL", ""),
-			frontendClientID:    env.GetString("KEYCLOAK_FRONTEND_CLIENT_ID", "frontend-admin-auth-client"),
-			frontendRedirectURL: env.GetString("KEYCLOAK_FRONTEND_REDIRECT_URL", ""),
+			baseURL:           env.GetString("KEYCLOAK_BASE_URL", "http://localhost:8081"),
+			realm:             env.GetString("KEYCLOAK_REALM", "backend-auth-dev"),
+			adminRealm:        env.GetString("KEYCLOAK_ADMIN_REALM", "master"),
+			adminClientID:     env.GetString("KEYCLOAK_ADMIN_CLIENT_ID", "admin-cli"),
+			adminClientSecret: env.GetString("KEYCLOAK_ADMIN_CLIENT_SECRET", ""),
+			jwkSetURL:         env.GetString("KEYCLOAK_JWK_SET_URL", "http://localhost:8081/realms/backend-auth-dev/protocol/openid-connect/certs"),
+			httpTimeout:       10 * time.Second,
 		},
 	}
 
 	securityConfig := &security.AuthConfig{
-		JWKSetURL:        cfg.keycloakConfig.jwkSetURL,
-		ExpectedIssuer:   cfg.keycloakConfig.expectedIssuer,
-		ExpectedAudience: cfg.keycloakConfig.expectedAudience,
+		JWKSetURL: cfg.keycloakConfig.jwkSetURL,
 	}
 
 	adminClient := keycloak.NewAdminClient(keycloak.AdminClientConfig{

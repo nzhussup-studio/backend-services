@@ -21,18 +21,13 @@ type config struct {
 }
 
 type keycloakConfig struct {
-	baseURL             string
-	realm               string
-	adminRealm          string
-	adminClientID       string
-	adminClientSecret   string
-	jwkSetURL           string
-	expectedIssuer      string
-	expectedAudience    string
-	httpTimeout         time.Duration
-	frontendLogoutURL   string
-	frontendClientID    string
-	frontendRedirectURL string
+	baseURL           string
+	realm             string
+	adminRealm        string
+	adminClientID     string
+	adminClientSecret string
+	jwkSetURL         string
+	httpTimeout       time.Duration
 }
 
 func newApp(config config, securityConfig *security.AuthConfig, accountService *service.AccountService) *app {

@@ -129,14 +129,6 @@ func verifyToken(ctx context.Context, config *AuthConfig, token string, claims *
 		return false, nil
 	}
 
-	if config.ExpectedIssuer != "" && claims.Iss != config.ExpectedIssuer {
-		return false, nil
-	}
-
-	if config.ExpectedAudience != "" && !hasAudience(claims.Aud, config.ExpectedAudience) {
-		return false, nil
-	}
-
 	if claims.Exp <= 0 || claims.Exp <= time.Now().Unix() {
 		return false, nil
 	}
@@ -224,21 +216,6 @@ func findPublicKey(keys *jwks, keyID string) (*rsa.PublicKey, error) {
 
 func decodeBase64URL(value string) ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(value)
-}
-
-func hasAudience(audClaim any, expectedAudience string) bool {
-	switch aud := audClaim.(type) {
-	case string:
-		return aud == expectedAudience
-	case []any:
-		for _, entry := range aud {
-			if audString, ok := entry.(string); ok && audString == expectedAudience {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 func firstNonEmpty(values ...string) string {
