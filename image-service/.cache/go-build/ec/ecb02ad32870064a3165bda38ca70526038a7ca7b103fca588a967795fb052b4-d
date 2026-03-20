@@ -1,0 +1,3 @@
+./mocks.go
+./redis.go
+./redis_test.go

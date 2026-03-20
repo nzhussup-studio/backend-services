@@ -6,7 +6,9 @@ type AuthRule struct {
 }
 
 type AuthConfig struct {
-	AuthServiceURL string
-	ValidationURL  string
-	Rules          []AuthRule
+	JWKSetURL        string
+	ExpectedIssuer   string
+	ExpectedAudience string
+	BackendClientID  string
+	Rules            []AuthRule
 }

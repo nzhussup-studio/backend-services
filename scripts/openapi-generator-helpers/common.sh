@@ -45,7 +45,7 @@ validate_service_dir() {
   service_name="$(basename "$service_dir")"
 
   case "$service_name" in
-    api-gateway)
+    nginx-gateway)
       fail "OpenAPI generation is not supported for ${service_name}."
       ;;
   esac

@@ -30,13 +30,13 @@ type app struct {
 }
 
 type config struct {
-	addr          string
-	port          int
-	storagePath   string
-	apiBasePath   string
-	redisConfig   *redisConfig
-	apiGatewayURL string
-	kafkaConfig   *kafkaConfig
+	addr           string
+	port           int
+	storagePath    string
+	apiBasePath    string
+	redisConfig    *redisConfig
+	keycloakConfig *keycloakConfig
+	kafkaConfig    *kafkaConfig
 }
 
 type redisConfig struct {
@@ -49,6 +49,13 @@ type redisConfig struct {
 type kafkaConfig struct {
 	brokerList []string
 	topic      string
+}
+
+type keycloakConfig struct {
+	jwkSetURL        string
+	expectedIssuer   string
+	expectedAudience string
+	backendClientID  string
 }
 
 func newApp(config config, securityConfig *security.AuthConfig) *app {

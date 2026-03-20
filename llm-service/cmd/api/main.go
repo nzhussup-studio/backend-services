@@ -27,7 +27,7 @@ import (
 func main() {
 	slog.Info("Starting LLM service...")
 
-	API_GATEWAY_URL := env.GetString("API_GATEWAY_URL", "http://localhost:8082")
+	NGINX_GATEWAY_URL := env.GetString("NGINX_GATEWAY_URL", "http://localhost:8082")
 
 	config := &config{
 		appConfig: &appConfig{
@@ -40,11 +40,11 @@ func main() {
 			interval: 3 * time.Minute,
 		},
 		servicesConfig: &servicesConfig{
-			WORK_EXPERIENCE_URL: API_GATEWAY_URL + "/v1/base/work-experience",
-			EDUCATION_URL:       API_GATEWAY_URL + "/v1/base/education",
-			PROJECTS_URL:        API_GATEWAY_URL + "/v1/base/project",
-			SKILLS_URL:          API_GATEWAY_URL + "/v1/base/skill",
-			CERTIFICATES_URL:    API_GATEWAY_URL + "/v1/base/certificate",
+			WORK_EXPERIENCE_URL: NGINX_GATEWAY_URL + "/v1/base/work-experience",
+			EDUCATION_URL:       NGINX_GATEWAY_URL + "/v1/base/education",
+			PROJECTS_URL:        NGINX_GATEWAY_URL + "/v1/base/project",
+			SKILLS_URL:          NGINX_GATEWAY_URL + "/v1/base/skill",
+			CERTIFICATES_URL:    NGINX_GATEWAY_URL + "/v1/base/certificate",
 		},
 		summarizerConfig: &summarizerConfig{
 			API_KEY: env.GetString("OPENROUTER_API_KEY", ""),

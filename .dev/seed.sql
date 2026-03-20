@@ -3,21 +3,8 @@ TRUNCATE TABLE
   education,
   projects,
   skills,
-  work_experience,
-  users
+  work_experience
 RESTART IDENTITY CASCADE;
-
-INSERT INTO users (username, password, role) VALUES
-  (
-    'admin',
-    '$2y$12$uWgXdVGJHlhCbb1jzptSZ.aoICVeMb6Z551HAF8jNBh3zf8Xkyp.C',
-    'ROLE_ADMIN'
-  ),
-  (
-    'jane.user',
-    '$2y$12$azF2crHGiAjd2CPyfDuuuuF450yqpkRRUsfdqWA7yQCNvsewAzjK.',
-    'ROLE_USER'
-  );
 
 INSERT INTO work_experience (company, location, start_date, end_date, position, description, display_order, tech_stack) VALUES
   (

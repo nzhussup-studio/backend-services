@@ -1,22 +1,6 @@
 {
   "services": [
     {
-      "name": "api-gateway",
-      "path": "api-gateway",
-      "lang": "go",
-      "ci_mode": "full",
-      "deployment": "backend-api-gateway",
-      "image_name": "backend-api-gateway"
-    },
-    {
-      "name": "auth-service",
-      "path": "auth-service",
-      "lang": "java",
-      "ci_mode": "full",
-      "deployment": "backend-auth-service",
-      "image_name": "backend-auth-service"
-    },
-    {
       "name": "base-service",
       "path": "base-service",
       "lang": "java",
@@ -41,12 +25,11 @@
       "image_name": "backend-llm-service"
     },
     {
-      "name": "user-service",
-      "path": "user-service",
-      "lang": "java",
-      "ci_mode": "full",
-      "deployment": "backend-user-service",
-      "image_name": "backend-user-service"
+      "name": "nginx-gateway",
+      "path": "nginx-gateway",
+      "ci_mode": "build-deploy",
+      "deployment": "backend-nginx-gateway",
+      "image_name": "backend-nginx-gateway"
     },
     {
       "name": "keycloak-server",

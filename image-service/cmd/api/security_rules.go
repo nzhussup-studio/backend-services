@@ -4,8 +4,10 @@ import "image-service/internal/config/security"
 
 func GetSecurityConfig(config *config) *security.AuthConfig {
 	return &security.AuthConfig{
-		AuthServiceURL: config.apiGatewayURL,
-		ValidationURL:  "/auth/validate",
+		JWKSetURL:        config.keycloakConfig.jwkSetURL,
+		ExpectedIssuer:   config.keycloakConfig.expectedIssuer,
+		ExpectedAudience: config.keycloakConfig.expectedAudience,
+		BackendClientID:  config.keycloakConfig.backendClientID,
 		Rules: []security.AuthRule{
 			{
 				Path: config.apiBasePath,

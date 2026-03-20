@@ -10,7 +10,7 @@ until pg_isready -h postgres -p 5432 -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" >
 done
 
 echo "Waiting for application tables..."
-until [ "$(psql -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('users', 'work_experience', 'education', 'projects', 'skills', 'certificates');")" = "6" ]; do
+until [ "$(psql -h postgres -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('work_experience', 'education', 'projects', 'skills', 'certificates');")" = "5" ]; do
   sleep 2
 done
 

@@ -9,7 +9,7 @@ import (
 )
 
 // AuthMiddleware is a middleware function that checks the authorization token
-// in the request header and validates it with the auth service.
+// in the request header and validates it against Keycloak's JWKS.
 // If the token is valid, it sets the username and roles in the context.
 // If the token is invalid or missing, it returns a 401 Unauthorized response.
 // It allows GET requests to pass through without validation.
@@ -21,8 +21,8 @@ func AuthMiddleware(config *AuthConfig) gin.HandlerFunc {
 			return
 		}
 
-		if config.AuthServiceURL == "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Auth service URL is not set"})
+		if config.JWKSetURL == "" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Keycloak auth configuration is incomplete"})
 			c.Abort()
 			return
 		}
@@ -47,7 +47,7 @@ func AuthMiddleware(config *AuthConfig) gin.HandlerFunc {
 				c.Abort()
 				return
 			case errors.Is(err, custom_errors.ErrInternalServer):
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Auth service unavailable"})
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Keycloak validation failed"})
 				c.Abort()
 				return
 			default:

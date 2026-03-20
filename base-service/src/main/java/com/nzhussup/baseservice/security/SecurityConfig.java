@@ -1,29 +1,29 @@
 package com.nzhussup.baseservice.security;
 
-import com.nzhussup.baseservice.config.AppConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private WebClient.Builder webClientBuilder;
-
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter)
+            throws Exception {
 
         http
                 .csrf(csfr -> csfr.disable())
@@ -31,19 +31,35 @@ public class SecurityConfig {
                     requests.requestMatchers(HttpMethod.GET).permitAll();
                     requests.anyRequest().hasRole("ADMIN");
                 })
-                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                 })
-                .addFilterBefore(new AuthServiceFilter(), UsernamePasswordAuthenticationFilter.class);
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(
+                        jwt -> jwt.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter)));
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    JwtDecoder jwtDecoder(
+            @Value("${app.security.keycloak.jwk-set-uri}") String jwkSetUri,
+            @Value("${app.security.keycloak.expected-issuer:}") String expectedIssuer,
+            @Value("${app.security.keycloak.expected-audience:}") String expectedAudience) {
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+
+        OAuth2TokenValidator<Jwt> defaultValidators = JwtValidators.createDefault();
+        OAuth2TokenValidator<Jwt> issuerAudienceValidator = new OptionalIssuerAudienceValidator(
+                expectedIssuer,
+                expectedAudience
+        );
+        jwtDecoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(defaultValidators, issuerAudienceValidator));
+
+        return jwtDecoder;
     }
 
+    @Bean
+    KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter(
+            @Value("${app.security.keycloak.backend-client-id}") String backendClientId) {
+        return new KeycloakJwtAuthenticationConverter(backendClientId);
+    }
 }

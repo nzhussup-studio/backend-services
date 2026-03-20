@@ -24,7 +24,7 @@ services:
 
   keycloak:
     build:
-      context: ../keycloak-service
+      context: ../keycloak-server
       dockerfile: Dockerfile
     container_name: backend-services-keycloak
     depends_on:
@@ -42,7 +42,6 @@ services:
       KC_PROXY_HEADERS: xforwarded
       KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-localhost}
       KC_HOSTNAME_STRICT: ${KEYCLOAK_HOSTNAME_STRICT:-false}
-      KC_HOSTNAME_STRICT_HTTPS: ${KEYCLOAK_HOSTNAME_STRICT_HTTPS:-false}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-root}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-root}
       BACKEND_AUTH_CLIENT_SECRET: ${BACKEND_AUTH_CLIENT_SECRET:-backend-auth-dev-secret}
@@ -57,8 +56,8 @@ services:
       KEYCLOAK_VERIFY_EMAIL: ${KEYCLOAK_VERIFY_EMAIL:-false}
       KEYCLOAK_BACKEND_CLIENT_ID: ${KEYCLOAK_BACKEND_CLIENT_ID:-backend-auth-client}
       KEYCLOAK_BACKEND_CLIENT_NAME: ${KEYCLOAK_BACKEND_CLIENT_NAME:-Backend Auth Client}
-      KEYCLOAK_BACKEND_STANDARD_FLOW_ENABLED: ${KEYCLOAK_BACKEND_STANDARD_FLOW_ENABLED:-true}
-      KEYCLOAK_BACKEND_DIRECT_ACCESS_GRANTS_ENABLED: ${KEYCLOAK_BACKEND_DIRECT_ACCESS_GRANTS_ENABLED:-true}
+      KEYCLOAK_BACKEND_STANDARD_FLOW_ENABLED: ${KEYCLOAK_BACKEND_STANDARD_FLOW_ENABLED:-false}
+      KEYCLOAK_BACKEND_DIRECT_ACCESS_GRANTS_ENABLED: ${KEYCLOAK_BACKEND_DIRECT_ACCESS_GRANTS_ENABLED:-false}
       KEYCLOAK_FRONTEND_CLIENT_ID: ${KEYCLOAK_FRONTEND_CLIENT_ID:-frontend-admin-auth-client}
       KEYCLOAK_FRONTEND_CLIENT_NAME: ${KEYCLOAK_FRONTEND_CLIENT_NAME:-Frontend Admin Auth Client}
       KEYCLOAK_FRONTEND_ROOT_URL: ${KEYCLOAK_FRONTEND_ROOT_URL:-http://localhost:5173}
@@ -141,23 +140,6 @@ services:
     networks:
       - backend-internal
 
-  auth-service:
-    build:
-      context: ../auth-service
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_HOST: postgres
-      SPRING_DATASOURCE_PORT: 5432
-      SPRING_DATASOURCE_DB: ${POSTGRES_DB:-personal_website_db}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nzhussup}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nzhussup}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SECURITY_JWT_SECRET_KEY: ${SECURITY_JWT_SECRET_KEY:-local-dev-secret-key}
-    networks:
-      - backend-internal
-
   base-service:
     build:
       context: ../base-service
@@ -166,10 +148,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      auth-service:
+      keycloak:
         condition: service_started
     environment:
-      AUTH_SERVICE_URL: http://auth-service:8083
       SPRING_DATASOURCE_HOST: postgres
       SPRING_DATASOURCE_PORT: 5432
       SPRING_DATASOURCE_DB: ${POSTGRES_DB:-personal_website_db}
@@ -178,25 +159,8 @@ services:
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-    networks:
-      - backend-internal
-
-  user-service:
-    build:
-      context: ../user-service
-    depends_on:
-      postgres:
-        condition: service_healthy
-      auth-service:
-        condition: service_started
-    environment:
-      AUTH_SERVICE_URL: http://auth-service:8083
-      SPRING_DATASOURCE_HOST: postgres
-      SPRING_DATASOURCE_PORT: 5432
-      SPRING_DATASOURCE_DB: ${POSTGRES_DB:-personal_website_db}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nzhussup}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-nzhussup}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      KEYCLOAK_BACKEND_CLIENT_ID: ${KEYCLOAK_BACKEND_CLIENT_ID:-backend-auth-client}
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}/protocol/openid-connect/certs
     networks:
       - backend-internal
 
@@ -207,11 +171,7 @@ services:
         condition: service_healthy
       keycloak-master-realm-init:
         condition: service_completed_successfully
-      auth-service:
-        condition: service_started
       base-service:
-        condition: service_started
-      user-service:
         condition: service_started
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-personal_website_db}
@@ -230,13 +190,14 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      auth-service:
+      keycloak:
         condition: service_started
     environment:
-      API_GATEWAY_URL: http://api-gateway:8082
       REDIS_HOST: redis
       REDIS_PORT: 6379
       GIN_MODE: release
+      KEYCLOAK_JWK_SET_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}/protocol/openid-connect/certs
+      KEYCLOAK_BACKEND_CLIENT_ID: ${KEYCLOAK_BACKEND_CLIENT_ID:-backend-auth-client}
     volumes:
       - image-data:/app/var/images
     networks:
@@ -249,7 +210,7 @@ services:
       redis:
         condition: service_healthy
     environment:
-      API_GATEWAY_URL: http://api-gateway:8082
+      NGINX_GATEWAY_URL: http://nginx-gateway:8082
       REDIS_HOST: redis
       REDIS_PORT: 6379
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
@@ -257,28 +218,26 @@ services:
     networks:
       - backend-internal
 
-  api-gateway:
+  nginx-gateway:
     build:
-      context: ../api-gateway
+      context: ../nginx-gateway
     depends_on:
-      auth-service:
-        condition: service_started
       base-service:
-        condition: service_started
-      user-service:
         condition: service_started
       image-service:
         condition: service_started
       llm-service:
         condition: service_started
     environment:
-      AUTH_SERVICE_URL: http://auth-service:8083
-      BASE_SERVICE_URL: http://base-service:8010
-      USER_SERVICE_URL: http://user-service:8084
-      IMAGE_SERVICE_URL: http://image-service:8085
-      LLM_SERVICE_URL: http://llm-service:8086
+      NGINX_GATEWAY_LISTEN_PORT: 8082
+      NGINX_GATEWAY_BASE_UPSTREAM_HOST: base-service
+      NGINX_GATEWAY_BASE_UPSTREAM_PORT: 8010
+      NGINX_GATEWAY_IMAGE_UPSTREAM_HOST: image-service
+      NGINX_GATEWAY_IMAGE_UPSTREAM_PORT: 8085
+      NGINX_GATEWAY_LLM_UPSTREAM_HOST: llm-service
+      NGINX_GATEWAY_LLM_UPSTREAM_PORT: 8086
     ports:
-      - "${API_GATEWAY_PORT:-8082}:8082"
+      - "${NGINX_GATEWAY_PORT:-8082}:8082"
     networks:
       - backend-internal
 

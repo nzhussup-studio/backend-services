@@ -41,8 +41,16 @@ func main() {
 			db:       0,
 			duration: 24 * time.Hour,
 		},
-		apiGatewayURL: env.GetString("API_GATEWAY_URL", "http://localhost:8082"),
-		kafkaConfig:   &kafkaConfig{
+		keycloakConfig: &keycloakConfig{
+			jwkSetURL: env.GetString(
+				"KEYCLOAK_JWK_SET_URL",
+				"http://localhost:8081/realms/backend-auth-dev/protocol/openid-connect/certs",
+			),
+			expectedIssuer:   env.GetString("KEYCLOAK_EXPECTED_ISSUER", ""),
+			expectedAudience: env.GetString("KEYCLOAK_EXPECTED_AUDIENCE", ""),
+			backendClientID:  env.GetString("KEYCLOAK_BACKEND_CLIENT_ID", "backend-auth-client"),
+		},
+		kafkaConfig: &kafkaConfig{
 			// brokerList: []string{
 			// 	env.GetString("KAFKA_BROKER_1", "kafka-broker-1.default.svc.cluster.local:29092"),
 			// },

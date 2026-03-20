@@ -11,17 +11,8 @@ This repository contains the backend runtime for `nzhussup.dev` and its admin ec
 
 ## Services
 
-- `api-gateway`  
-  Unified entrypoint for backend APIs and request routing.
-
-- `auth-service`  
-  Authentication and token-related flows for protected access.
-
 - `base-service`  
   Core data APIs used to manage portfolio and profile content.
-
-- `user-service`  
-  User management and admin-facing user operations.
 
 - `image-service`  
   Image and album handling, including media-related backend logic.
@@ -29,7 +20,10 @@ This repository contains the backend runtime for `nzhussup.dev` and its admin ec
 - `llm-service`  
   LLM-backed capabilities used by the platform.
 
-- `keycloak-service`
+- `nginx-gateway`
+  Lightweight edge router for local and deployment packaging.
+
+- `keycloak-server`
   Keycloak image source, production realm template, and startup rendering logic for platform IAM.
 
 ## Stack
@@ -52,16 +46,6 @@ The repository uses a single manifest-driven CI/CD pipeline defined under `.gith
 
 Each service is isolated in its own top-level directory with its own code, build definition, and runtime concerns. Shared CI/CD configuration lives under `.github/`.
 
-## Keycloak
-
-Production Keycloak source now lives under `keycloak-service/`.
-
-It contains:
-
-- a `Dockerfile` based on the official Keycloak image
-- a production realm template kept as a standalone JSON file
-- an entrypoint that renders runtime secrets into the import file before startup
-
 ## OpenAPI Generation
 
 This repository includes a repo-level OpenAPI generator at `scripts/generate-openapi.sh`.
@@ -77,7 +61,7 @@ Generate OpenAPI for a single service:
 Examples:
 
 ```bash
-./scripts/generate-openapi.sh auth-service
+./scripts/generate-openapi.sh base-service
 ./scripts/generate-openapi.sh image-service
 ```
 
@@ -109,4 +93,4 @@ For Java services, the generator uses an `openapi` runtime profile so specs can 
 
 The generator currently supports the services listed in `openapi-services.json`.
 
-`api-gateway` is intentionally excluded from OpenAPI generation.
+`nginx-gateway` is intentionally excluded from OpenAPI generation.

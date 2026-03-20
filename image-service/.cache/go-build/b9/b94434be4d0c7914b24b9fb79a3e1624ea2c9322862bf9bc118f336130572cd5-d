@@ -1,0 +1,16 @@
+# test log
+getenv TEST_STRING
+getenv TEST_STRING
+getenv MISSING_STRING
+getenv TEST_INT
+getenv TEST_INT
+getenv MISSING_INT
+getenv TEST_INT_INVALID
+getenv TEST_INT_INVALID
+getenv TEST_BOOL_TRUE
+getenv TEST_BOOL_FALSE
+getenv TEST_BOOL_TRUE
+getenv TEST_BOOL_FALSE
+getenv MISSING_BOOL
+getenv TEST_BOOL_INVALID
+getenv TEST_BOOL_INVALID

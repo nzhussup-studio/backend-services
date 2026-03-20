@@ -56,10 +56,6 @@ Example production list:
 
 - `https://admin.nzhussup.dev`
 - `https://admin.nzhussup.com`
-- `https://api.nzhussup.dev`
-- `https://api.nzhussup.com`
-- `https://nzhussup.dev`
-- `https://nzhussup.com`
 
 Only keep the hosts you actually need. Subdomains are separate origins for CORS.
 

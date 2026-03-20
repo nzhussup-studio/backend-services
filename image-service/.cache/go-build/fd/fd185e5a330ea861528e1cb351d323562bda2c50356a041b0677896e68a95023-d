@@ -1,0 +1,3 @@
+./album_repo.go
+./image_repo.go
+./storage.go

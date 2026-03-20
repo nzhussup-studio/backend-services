@@ -1,0 +1,9 @@
+./album_service.go
+./cache_service.go
+./image_service.go
+./mocks.go
+./service.go
+./album_service_test.go
+./cache_service_test.go
+./image_service_test.go
+./service_test.go
