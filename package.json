@@ -1,6 +1,6 @@
 {
   "name": "backend-services",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "This repository contains the backend runtime for `nzhussup.dev` and its admin ecosystem. It is organized as a set of focused services rather than a single application, which keeps deployment, scaling, and operational ownership explicit.",
   "main": "index.js",
   "scripts": {

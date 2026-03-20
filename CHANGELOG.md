@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/nzhussup-studio/backend-services/compare/v1.2.0...v1.3.0) (2026-03-20)
+
+
+### Features
+
+* fix dev mode and add custom template based keycloak ([53b314e](https://github.com/nzhussup-studio/backend-services/commit/53b314e6fe09e75e00cebf4a9c224116284d77e3))
+* make keycloak only build and deploy ([4f8b390](https://github.com/nzhussup-studio/backend-services/commit/4f8b39058a098cd9383ff89e4ff18618269f9f30))
+
+
+### Bug Fixes
+
+* adjust example env ([f91577a](https://github.com/nzhussup-studio/backend-services/commit/f91577a75e8cd3808ba6827f8b39336a493a9622))
+* cicd ([82ff8e4](https://github.com/nzhussup-studio/backend-services/commit/82ff8e49849e9584dead830cc73b6457457a6131))
+* delete go cache ([f549766](https://github.com/nzhussup-studio/backend-services/commit/f5497666f19fa9dd113fd6e6c75f1710ef5a8a6f))
+* delete go cache ([80a16eb](https://github.com/nzhussup-studio/backend-services/commit/80a16eb508e4a7fd066f0f49eafe0e959947b783))
+* rename keycloak to be consistent with namings of external services ([ed0fb28](https://github.com/nzhussup-studio/backend-services/commit/ed0fb2815a98a2bdae13903d8ecec3e615709a9b))
+* replace url ([18cc8d9](https://github.com/nzhussup-studio/backend-services/commit/18cc8d9dd24a0885bf1665097f8c0702ea3a0c18))
+
 ## [1.2.0](https://github.com/nzhussup-studio/backend-services/compare/v1.1.0...v1.2.0) (2026-03-19)
 
 
