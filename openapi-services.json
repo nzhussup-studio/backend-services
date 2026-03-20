@@ -2,6 +2,7 @@
   "services": [
     "base-service",
     "image-service",
-    "llm-service"
+    "llm-service",
+    "account-service"
   ]
 }

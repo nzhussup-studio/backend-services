@@ -879,6 +879,59 @@ paths:
         name: lang
         schema:
           type: string
+  "/health":
+    get:
+      description: Returns 200 OK if the service is up
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/account_service_model.SuccessResponse"
+      summary: Health check endpoint
+      tags:
+      - Health
+  "/v1/account":
+    delete:
+      description: Logs out and deletes the current Keycloak user identified by the
+        bearer token subject.
+      responses:
+        '204':
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/account_service_model.ErrorResponse"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/account_service_model.ErrorResponse"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/account_service_model.ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/account_service_model.ErrorResponse"
+      security:
+      - account_service_ApiKeyAuth: []
+      summary: Delete the currently authenticated account
+      tags:
+      - Account
 components:
   schemas:
     base_service_WorkExperience:
@@ -1065,12 +1118,28 @@ components:
         status:
           type: integer
       type: object
+    account_service_model.ErrorResponse:
+      properties:
+        error:
+          example: Unauthorized
+          type: string
+      type: object
+    account_service_model.SuccessResponse:
+      properties:
+        message:
+          example: OK
+          type: string
+      type: object
   securitySchemes:
     image_service_ApiKeyAuth:
       in: header
       name: Authorization
       type: apiKey
     llm_service_ApiKeyAuth:
+      in: header
+      name: Authorization
+      type: apiKey
+    account_service_ApiKeyAuth:
       in: header
       name: Authorization
       type: apiKey

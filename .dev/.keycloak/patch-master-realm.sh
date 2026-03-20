@@ -69,7 +69,23 @@ echo "Granting ${TARGET_REALM}-realm roles to ${SERVICE_ACCOUNT_USERNAME} in mas
   -r master \
   --uusername "${SERVICE_ACCOUNT_USERNAME}" \
   --cclientid "${TARGET_REALM}-realm" \
+  --rolename create-client \
+  --rolename impersonation \
+  --rolename manage-authorization \
+  --rolename manage-clients \
+  --rolename manage-events \
+  --rolename manage-identity-providers \
+  --rolename manage-realm \
   --rolename manage-users \
-  --rolename query-users >/dev/null
+  --rolename query-clients \
+  --rolename query-groups \
+  --rolename query-realms \
+  --rolename query-users \
+  --rolename view-authorization \
+  --rolename view-clients \
+  --rolename view-events \
+  --rolename view-identity-providers \
+  --rolename view-realm \
+  --rolename view-users >/dev/null
 
 echo "Master realm patched."

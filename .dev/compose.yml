@@ -236,8 +236,6 @@ services:
       KEYCLOAK_ADMIN_CLIENT_ID: ${ACCOUNT_SERVICE_ADMIN_CLIENT_ID:-account-service-admin}
       KEYCLOAK_ADMIN_CLIENT_SECRET: ${ACCOUNT_SERVICE_ADMIN_CLIENT_SECRET:-account-service-dev-secret}
       KEYCLOAK_JWK_SET_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}/protocol/openid-connect/certs
-      KEYCLOAK_EXPECTED_ISSUER: http://localhost:8081/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}
-      KEYCLOAK_EXPECTED_AUDIENCE: ${KEYCLOAK_BACKEND_CLIENT_ID:-backend-auth-client}
       PORT: 8087
       API_BASE_PATH: /v1/account
     networks:

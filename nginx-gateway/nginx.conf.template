@@ -130,7 +130,7 @@ http {
       proxy_pass http://${NGINX_GATEWAY_LLM_UPSTREAM_HOST}:${NGINX_GATEWAY_LLM_UPSTREAM_PORT};
     }
 
-    location /v1/account/ {
+    location ~ ^/v1/account/?$ {
       add_header Access-Control-Allow-Origin $http_origin always;
       add_header Access-Control-Allow-Credentials "true" always;
       add_header Access-Control-Allow-Headers "Authorization,Content-Type,Accept,Origin,Cache-Control,X-Requested-With" always;

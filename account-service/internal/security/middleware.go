@@ -38,6 +38,7 @@ func AuthMiddleware(config *AuthConfig) gin.HandlerFunc {
 
 		c.Set("subject", validationResponse.Subject)
 		c.Set("username", validationResponse.Username)
+		c.Set("email", validationResponse.Email)
 		c.Next()
 	}
 }

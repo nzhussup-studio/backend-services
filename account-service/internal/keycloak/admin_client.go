@@ -31,6 +31,12 @@ type tokenResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
+type userRepresentation struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
 func NewAdminClient(config AdminClientConfig) *AdminClient {
 	return &AdminClient{
 		config: config,
@@ -98,6 +104,33 @@ func (c *AdminClient) DeleteUser(ctx context.Context, userID string) error {
 	return c.adminAPIError(resp, "failed to delete current user")
 }
 
+func (c *AdminClient) ResolveUserID(ctx context.Context, subject string, username string, email string) (string, error) {
+	if subject != "" {
+		return subject, nil
+	}
+
+	adminToken, err := c.adminAccessToken(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	if username != "" {
+		userID, err := c.findUserID(ctx, adminToken, "username", username)
+		if err == nil {
+			return userID, nil
+		}
+		if !strings.Contains(err.Error(), customerrors.ErrNotFound.Error()) {
+			return "", err
+		}
+	}
+
+	if email != "" {
+		return c.findUserID(ctx, adminToken, "email", email)
+	}
+
+	return "", customerrors.Wrap(customerrors.ErrUnauthorized, "token does not contain a usable account identifier")
+}
+
 func (c *AdminClient) adminAccessToken(ctx context.Context) (string, error) {
 	if c.config.AdminClientID == "" || c.config.AdminClientSecret == "" {
 		return "", customerrors.Wrap(customerrors.ErrInternal, "Keycloak admin client credentials are not configured")
@@ -136,6 +169,55 @@ func (c *AdminClient) adminAccessToken(ctx context.Context) (string, error) {
 	}
 
 	return payload.AccessToken, nil
+}
+
+func (c *AdminClient) findUserID(ctx context.Context, adminToken string, field string, value string) (string, error) {
+	query := url.Values{}
+	query.Set("exact", "true")
+	query.Set(field, value)
+
+	endpoint := fmt.Sprintf(
+		"%s/admin/realms/%s/users?%s",
+		strings.TrimRight(c.config.BaseURL, "/"),
+		url.PathEscape(c.config.Realm),
+		query.Encode(),
+	)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return "", customerrors.Wrap(customerrors.ErrInternal, "failed to create user lookup request")
+	}
+
+	req.Header.Set("Authorization", "Bearer "+adminToken)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return "", customerrors.Wrap(customerrors.ErrInternal, "failed to call Keycloak user lookup endpoint")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", c.adminAPIError(resp, "failed to resolve current user")
+	}
+
+	var users []userRepresentation
+	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+		return "", customerrors.Wrap(customerrors.ErrInternal, "failed to decode Keycloak user lookup response")
+	}
+
+	for _, user := range users {
+		if user.ID == "" {
+			continue
+		}
+		if field == "username" && user.Username == value {
+			return user.ID, nil
+		}
+		if field == "email" && strings.EqualFold(user.Email, value) {
+			return user.ID, nil
+		}
+	}
+
+	return "", customerrors.Wrap(customerrors.ErrNotFound, "current user not found")
 }
 
 func (c *AdminClient) adminAPIError(resp *http.Response, prefix string) error {

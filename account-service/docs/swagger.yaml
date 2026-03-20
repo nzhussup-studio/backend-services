@@ -1,0 +1,76 @@
+definitions:
+  model.ErrorResponse:
+    properties:
+      error:
+        example: Unauthorized
+        type: string
+    type: object
+  model.SuccessResponse:
+    properties:
+      message:
+        example: OK
+        type: string
+    type: object
+host: localhost:8087
+info:
+  contact:
+    name: Nurzhanat Zhussup
+    url: https://github.com/nzhussup
+  description: API for authenticated self-service account management through Keycloak.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Account Service API
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      description: Returns 200 OK if the service is up
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is healthy
+          schema:
+            $ref: '#/definitions/model.SuccessResponse'
+      summary: Health check endpoint
+      tags:
+      - Health
+  /v1/account:
+    delete:
+      description: Logs out and deletes the current Keycloak user identified by the
+        bearer token subject.
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete the currently authenticated account
+      tags:
+      - Account
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

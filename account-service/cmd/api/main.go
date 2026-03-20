@@ -8,8 +8,21 @@ import (
 	"account-service/internal/keycloak"
 	"account-service/internal/security"
 	"account-service/internal/service"
+
+	_ "account-service/docs"
 )
 
+// @title Account Service API
+// @version 1.0.0
+// @description API for authenticated self-service account management through Keycloak.
+// @contact.name Nurzhanat Zhussup
+// @contact.url https://github.com/nzhussup
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+// @host localhost:8087
+// @securityDefinitions.apiKey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	port := env.GetInt("PORT", 8087)
 

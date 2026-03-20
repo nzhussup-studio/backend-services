@@ -7,10 +7,12 @@ import (
 )
 
 type adminClientStub struct {
-	logoutErr error
-	deleteErr error
-	loggedOut []string
-	deleted   []string
+	logoutErr  error
+	deleteErr  error
+	resolveID  string
+	resolveErr error
+	loggedOut  []string
+	deleted    []string
 }
 
 func (s *adminClientStub) LogoutUser(_ context.Context, userID string) error {
@@ -23,11 +25,15 @@ func (s *adminClientStub) DeleteUser(_ context.Context, userID string) error {
 	return s.deleteErr
 }
 
+func (s *adminClientStub) ResolveUserID(_ context.Context, _ string, _ string, _ string) (string, error) {
+	return s.resolveID, s.resolveErr
+}
+
 func TestDeleteCurrentAccountLogsOutThenDeletes(t *testing.T) {
-	stub := &adminClientStub{}
+	stub := &adminClientStub{resolveID: "user-123"}
 	service := &AccountService{adminClient: stub}
 
-	err := service.DeleteCurrentAccount(context.Background(), "user-123")
+	err := service.DeleteCurrentAccount(context.Background(), "", "new", "new@example.com")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -42,10 +48,13 @@ func TestDeleteCurrentAccountLogsOutThenDeletes(t *testing.T) {
 }
 
 func TestDeleteCurrentAccountStopsWhenLogoutFails(t *testing.T) {
-	stub := &adminClientStub{logoutErr: errors.New("logout failed")}
+	stub := &adminClientStub{
+		resolveID: "user-123",
+		logoutErr: errors.New("logout failed"),
+	}
 	service := &AccountService{adminClient: stub}
 
-	err := service.DeleteCurrentAccount(context.Background(), "user-123")
+	err := service.DeleteCurrentAccount(context.Background(), "", "new", "new@example.com")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}

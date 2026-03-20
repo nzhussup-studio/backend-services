@@ -22,11 +22,13 @@ import (
 type ValidationResponse struct {
 	Subject  string `json:"subject"`
 	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 type tokenClaims struct {
 	PreferredUsername string `json:"preferred_username"`
 	Username          string `json:"username"`
+	Email             string `json:"email"`
 	Sub               string `json:"sub"`
 	Iss               string `json:"iss"`
 	Aud               any    `json:"aud"`
@@ -70,6 +72,7 @@ func Validate(c *gin.Context, config *AuthConfig, token string) (ValidationRespo
 	return ValidationResponse{
 		Subject:  claims.Sub,
 		Username: firstNonEmpty(claims.PreferredUsername, claims.Username, claims.Sub),
+		Email:    claims.Email,
 	}, nil
 }
 
@@ -134,7 +137,7 @@ func verifyToken(ctx context.Context, config *AuthConfig, token string, claims *
 		return false, nil
 	}
 
-	if claims.Sub == "" || claims.Exp <= 0 || claims.Exp <= time.Now().Unix() {
+	if claims.Exp <= 0 || claims.Exp <= time.Now().Unix() {
 		return false, nil
 	}
 
