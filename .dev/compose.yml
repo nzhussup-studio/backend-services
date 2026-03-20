@@ -89,6 +89,9 @@ services:
     environment:
       KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-root}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-root}
+      KEYCLOAK_REALM_NAME: ${KEYCLOAK_REALM_NAME:-backend-auth-dev}
+      ACCOUNT_SERVICE_ADMIN_CLIENT_ID: ${ACCOUNT_SERVICE_ADMIN_CLIENT_ID:-account-service-admin}
+      ACCOUNT_SERVICE_ADMIN_CLIENT_SECRET: ${ACCOUNT_SERVICE_ADMIN_CLIENT_SECRET:-account-service-dev-secret}
     entrypoint: ["/bin/sh", "/init/patch-master-realm.sh"]
     volumes:
       - ./.keycloak/patch-master-realm.sh:/init/patch-master-realm.sh:ro
@@ -218,6 +221,28 @@ services:
     networks:
       - backend-internal
 
+  account-service:
+    build:
+      context: ../account-service
+    depends_on:
+      keycloak-master-realm-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_started
+    environment:
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM_NAME:-backend-auth-dev}
+      KEYCLOAK_ADMIN_REALM: master
+      KEYCLOAK_ADMIN_CLIENT_ID: ${ACCOUNT_SERVICE_ADMIN_CLIENT_ID:-account-service-admin}
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${ACCOUNT_SERVICE_ADMIN_CLIENT_SECRET:-account-service-dev-secret}
+      KEYCLOAK_JWK_SET_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}/protocol/openid-connect/certs
+      KEYCLOAK_EXPECTED_ISSUER: http://localhost:8081/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}
+      KEYCLOAK_EXPECTED_AUDIENCE: ${KEYCLOAK_BACKEND_CLIENT_ID:-backend-auth-client}
+      PORT: 8087
+      API_BASE_PATH: /v1/account
+    networks:
+      - backend-internal
+
   nginx-gateway:
     build:
       context: ../nginx-gateway
@@ -228,6 +253,8 @@ services:
         condition: service_started
       llm-service:
         condition: service_started
+      account-service:
+        condition: service_started
     environment:
       NGINX_GATEWAY_LISTEN_PORT: 8082
       NGINX_GATEWAY_BASE_UPSTREAM_HOST: base-service
@@ -236,6 +263,8 @@ services:
       NGINX_GATEWAY_IMAGE_UPSTREAM_PORT: 8085
       NGINX_GATEWAY_LLM_UPSTREAM_HOST: llm-service
       NGINX_GATEWAY_LLM_UPSTREAM_PORT: 8086
+      NGINX_GATEWAY_ACCOUNT_UPSTREAM_HOST: account-service
+      NGINX_GATEWAY_ACCOUNT_UPSTREAM_PORT: 8087
     ports:
       - "${NGINX_GATEWAY_PORT:-8082}:8082"
     networks:

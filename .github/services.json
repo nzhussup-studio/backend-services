@@ -25,6 +25,14 @@
       "image_name": "backend-llm-service"
     },
     {
+      "name": "account-service",
+      "path": "account-service",
+      "lang": "go",
+      "ci_mode": "full",
+      "deployment": "backend-account-service",
+      "image_name": "backend-account-service"
+    }
+    {
       "name": "nginx-gateway",
       "path": "nginx-gateway",
       "ci_mode": "build-deploy",

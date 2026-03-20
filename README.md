@@ -17,6 +17,9 @@ This repository contains the backend runtime for `nzhussup.dev` and its admin ec
 - `image-service`  
   Image and album handling, including media-related backend logic.
 
+- `account-service`
+  Thin Keycloak-facing account management service for authenticated self-service actions.
+
 - `llm-service`  
   LLM-backed capabilities used by the platform.
 

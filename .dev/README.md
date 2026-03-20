@@ -12,6 +12,7 @@ The compose stack includes:
 - `base-service`
 - `image-service`
 - `llm-service`
+- `account-service`
 - `nginx-gateway`
 - `db-seed` one-shot seeding container
 
@@ -64,12 +65,14 @@ For free-form local access by IP or alternate hostnames, the defaults keep hostn
 - `KC_PROXY_HEADERS=xforwarded`
 
 The local stack also patches the `master` realm to `sslRequired=NONE` after startup so the admin console works over plain HTTP on localhost.
+That same init step also creates a dedicated confidential client for `account-service` in the `master` realm with service accounts enabled, then grants it the minimum user-management roles needed in the dev realm.
 
 The dev render currently configures:
 
 - realm roles `ROLE_ADMIN` and `ROLE_USER`, with `ROLE_USER` as the default role for new users
 - confidential client `backend-auth-client`
 - public client `frontend-admin-auth-client`
+- confidential client `account-service-admin` in `master` for account-service admin API access
 - self-service user registration enabled
 - Google and GitHub identity providers enabled only when credentials are provided
 - local users `admin` and `jane.user` through the dev-only users JSON

@@ -186,15 +186,6 @@
       }
     }
   ],
-  "requiredActions": [
-    {
-      "alias": "delete_account",
-      "name": "Delete Account",
-      "providerId": "delete_account",
-      "enabled": true,
-      "defaultAction": false,
-      "priority": 100
-    }
-  ],
+  "requiredActions": [],
   "users": "__USERS_JSON__"
 }
