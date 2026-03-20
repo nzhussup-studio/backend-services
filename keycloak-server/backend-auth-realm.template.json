@@ -14,11 +14,59 @@
   "defaultRoles": [
     "ROLE_USER"
   ],
+  "defaultRole": {
+    "name": "default-roles-__REALM_NAME__",
+    "description": "${role_default-roles}",
+    "composite": true,
+    "clientRole": false
+  },
   "roles": {
     "realm": [
       {
+        "name": "offline_access",
+        "description": "${role_offline-access}"
+      },
+      {
+        "name": "uma_authorization",
+        "description": "${role_uma_authorization}"
+      },
+      {
+        "name": "default-roles-__REALM_NAME__",
+        "description": "${role_default-roles}",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "ROLE_USER",
+            "offline_access",
+            "uma_authorization"
+          ],
+          "client": {
+            "account": [
+              "manage-account",
+              "view-profile",
+              "delete-account"
+            ]
+          }
+        }
+      },
+      {
         "name": "ROLE_ADMIN",
         "description": "Administrative access for the platform."
+      },
+      {
+        "name": "ROLE_SUPER_ADMIN",
+        "description": "Platform admin with full realm-management access.",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "ROLE_ADMIN"
+          ],
+          "client": {
+            "realm-management": [
+              "realm-admin"
+            ]
+          }
+        }
       },
       {
         "name": "ROLE_USER",
@@ -136,6 +184,16 @@
         "authorizationUrl": "https://github.com/login/oauth/authorize",
         "tokenUrl": "https://github.com/login/oauth/access_token"
       }
+    }
+  ],
+  "requiredActions": [
+    {
+      "alias": "delete_account",
+      "name": "Delete Account",
+      "providerId": "delete_account",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 100
     }
   ],
   "users": "__USERS_JSON__"

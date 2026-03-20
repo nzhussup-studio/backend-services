@@ -15,8 +15,9 @@
       }
     ],
     "realmRoles": [
+      "default-roles-backend-auth-dev",
       "ROLE_ADMIN",
-      "ROLE_USER"
+      "ROLE_SUPER_ADMIN"
     ]
   },
   {
@@ -35,7 +36,7 @@
       }
     ],
     "realmRoles": [
-      "ROLE_USER"
+      "default-roles-backend-auth-dev"
     ]
   }
 ]
