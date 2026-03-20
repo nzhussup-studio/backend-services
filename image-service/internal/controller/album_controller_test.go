@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	custom_errors "image-service/internal/errors"
 	"image-service/internal/model"
 	"image-service/internal/service"
 	"net/http"
@@ -57,6 +58,23 @@ func TestAlbumController_Get_Error(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	mockSvc.AssertExpectations(t)
+}
+
+func TestAlbumController_Get_Forbidden(t *testing.T) {
+	mockSvc := new(MockAlbumService)
+	router, _ := setupAlbumController(mockSvc)
+
+	mockSvc.On("GetAlbum", mock.Anything, "999").Return(
+		nil,
+		custom_errors.NewError(custom_errors.ErrForbidden, "User is not an admin"),
+	)
+
+	req, _ := http.NewRequest(http.MethodGet, "/v1/album/999", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusForbidden, w.Code)
 	mockSvc.AssertExpectations(t)
 }
 

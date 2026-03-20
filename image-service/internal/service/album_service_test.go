@@ -1,8 +1,8 @@
 package service
 
 import (
-	"errors"
 	"image-service/internal/config/security"
+	custom_errors "image-service/internal/errors"
 	"image-service/internal/model"
 	"image-service/internal/repository"
 	"testing"
@@ -132,7 +132,7 @@ func TestGetAlbum_Private_NotAdmin(t *testing.T) {
 
 	original := security.CheckIsAdmin
 	security.CheckIsAdmin = func(ctx *gin.Context, config *security.AuthConfig) error {
-		return errors.New("not an admin")
+		return custom_errors.NewError(custom_errors.ErrForbidden, "User is not an admin")
 	}
 	defer func() { security.CheckIsAdmin = original }()
 
@@ -140,5 +140,6 @@ func TestGetAlbum_Private_NotAdmin(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
+	assert.ErrorIs(t, err, custom_errors.ErrForbidden)
 	mockRedis.AssertExpectations(t)
 }
