@@ -4,42 +4,6 @@ info:
   title: Backend Services API
   version: 1.0.0
 paths:
-  "/auth/validate":
-    post:
-      tags:
-      - auth-controller
-      operationId: validateToken
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/auth_service_ValidationRequest"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: object
-  "/auth/login":
-    post:
-      tags:
-      - auth-controller
-      operationId: login
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/auth_service_AuthRequest"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: object
   "/v1/base/work-experience":
     get:
       tags:
@@ -357,123 +321,6 @@ paths:
             "*/*":
               schema:
                 type: string
-  "/v1/user/public":
-    put:
-      tags:
-      - public-user-controller
-      operationId: updateUser
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/user_service_User"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: object
-    post:
-      tags:
-      - public-user-controller
-      operationId: registerUser
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/user_service_PublicUserRegistryRequest"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: object
-    delete:
-      tags:
-      - public-user-controller
-      operationId: deleteUser
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/user_service_User"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: object
-  "/v1/user/admin":
-    get:
-      tags:
-      - admin-user-controller
-      operationId: findAll
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/user_service_User"
-    put:
-      tags:
-      - admin-user-controller
-      operationId: updateUser_1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/user_service_User"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: object
-    post:
-      tags:
-      - admin-user-controller
-      operationId: registerUser_1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/user_service_AdminUserRegistryRequest"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: object
-    delete:
-      tags:
-      - admin-user-controller
-      operationId: deleteUser_1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/user_service_User"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: object
   "/v1/album":
     get:
       description: Returns a preview list of albums, filtered by type
@@ -1034,18 +881,6 @@ paths:
           type: string
 components:
   schemas:
-    auth_service_ValidationRequest:
-      type: object
-      properties:
-        token:
-          type: string
-    auth_service_AuthRequest:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
     base_service_WorkExperience:
       type: object
       properties:
@@ -1135,34 +970,6 @@ components:
         displayOrder:
           type: integer
           format: int32
-    user_service_User:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        username:
-          type: string
-        password:
-          type: string
-        role:
-          type: string
-    user_service_PublicUserRegistryRequest:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-    user_service_AdminUserRegistryRequest:
-      type: object
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-        role:
-          type: string
     image_service_model.Album:
       properties:
         date:

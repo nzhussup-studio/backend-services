@@ -36,7 +36,7 @@ The stack works without a `.env` file because the compose file already defines d
 
 ## Keycloak
 
-The local stack includes a Keycloak instance for IAM migration work.
+The local stack includes the active Keycloak runtime used by the admin panel and backend services.
 
 - URL: `http://localhost:8081`
 - admin username: `root`
