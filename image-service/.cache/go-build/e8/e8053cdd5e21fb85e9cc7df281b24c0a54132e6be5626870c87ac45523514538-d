@@ -1,6 +1,0 @@
-./image_utils.go
-./misc.go
-./uuid.go
-./image_utils_test.go
-./misc_test.go
-./uuid_test.go

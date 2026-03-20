@@ -1,5 +1,0 @@
-./album_repo.go
-./image_repo.go
-./storage.go
-./image_repo_test.go
-./storage_test.go

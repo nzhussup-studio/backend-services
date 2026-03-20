@@ -1,5 +1,0 @@
-./album_service.go
-./cache_service.go
-./image_service.go
-./mocks.go
-./service.go

@@ -1,6 +1,0 @@
-./album_controller.go
-./cache_controller.go
-./controller.go
-./health.go
-./image_controller.go
-./mocks.go
