@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backend Services API Docs</title>
+    <link rel="icon" type="image/svg+xml" href="/docs/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4efe4;
+        --panel: #fffdf8;
+        --ink: #1e2430;
+        --muted: #667085;
+        --accent: #a6461a;
+        --accent-soft: #edd8c7;
+        --border: #dbcdbd;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(166, 70, 26, 0.12), transparent 35%),
+          linear-gradient(180deg, #f8f3ea 0%, var(--bg) 100%);
+      }
+
+      .shell {
+        min-height: 100vh;
+      }
+
+      .hero {
+        padding: 32px 24px 20px;
+        border-bottom: 1px solid rgba(30, 36, 48, 0.08);
+      }
+
+      .hero-inner {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        font: 600 12px/1.2 "Courier New", monospace;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 3vw, 3.4rem);
+        line-height: 0.95;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        max-width: 780px;
+        margin: 14px 0 0;
+        font-size: 1rem;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .links a {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--ink);
+        background: rgba(255, 253, 248, 0.88);
+        text-decoration: none;
+      }
+
+      .links a:hover {
+        border-color: var(--accent);
+      }
+
+      .docs-panel {
+        max-width: 1180px;
+        margin: 24px auto;
+        padding: 0 24px 32px;
+      }
+
+      .docs-card {
+        overflow: hidden;
+        border: 1px solid rgba(30, 36, 48, 0.08);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: 0 18px 50px rgba(30, 36, 48, 0.08);
+      }
+
+      #swagger-ui {
+        padding-bottom: 24px;
+      }
+
+      .swagger-ui .topbar {
+        display: none;
+      }
+
+      .swagger-ui .info {
+        margin: 24px 0;
+      }
+
+      .swagger-ui .scheme-container {
+        background: transparent;
+        box-shadow: none;
+        padding: 20px 0;
+      }
+
+      .swagger-ui .opblock.opblock-get {
+        border-color: #6f9676;
+      }
+
+      .swagger-ui .opblock.opblock-post {
+        border-color: #2c7a7b;
+      }
+
+      .swagger-ui .opblock.opblock-put,
+      .swagger-ui .opblock.opblock-patch {
+        border-color: #9f6b00;
+      }
+
+      .swagger-ui .opblock.opblock-delete {
+        border-color: #b42318;
+      }
+
+      .swagger-ui .download-url-wrapper {
+        display: none;
+      }
+
+      @media (max-width: 720px) {
+        .hero,
+        .docs-panel {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+
+        .links {
+          gap: 8px;
+        }
+
+        .links a {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hero">
+        <div class="hero-inner">
+          <p class="eyebrow">Nzhussup Studio</p>
+          <h1>Backend API Docs</h1>
+          <p class="subtitle">
+            Interactive OpenAPI docs.
+          </p>
+          <div class="links">
+            <a href="/docs/specs/openapi.yaml" target="_blank" rel="noreferrer">Merged spec YAML</a>
+          </div>
+        </div>
+      </header>
+
+      <main class="docs-panel">
+        <section class="docs-card">
+          <div id="swagger-ui"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+      window.ui = SwaggerUIBundle({
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        persistAuthorization: true,
+        displayRequestDuration: true,
+        url: "/docs/specs/openapi.yaml"
+      });
+    </script>
+  </body>
+</html>

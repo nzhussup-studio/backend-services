@@ -12,10 +12,76 @@ http {
   keepalive_timeout 65;
   client_max_body_size 50m;
 
+  # Map service prefix to upstream host:port
+  map $service $api_upstream {
+    default "";
+    base     "${NGINX_GATEWAY_BASE_UPSTREAM_HOST}:${NGINX_GATEWAY_BASE_UPSTREAM_PORT}";
+    album    "${NGINX_GATEWAY_IMAGE_UPSTREAM_HOST}:${NGINX_GATEWAY_IMAGE_UPSTREAM_PORT}";
+    llm      "${NGINX_GATEWAY_LLM_UPSTREAM_HOST}:${NGINX_GATEWAY_LLM_UPSTREAM_PORT}";
+    account  "${NGINX_GATEWAY_ACCOUNT_UPSTREAM_HOST}:${NGINX_GATEWAY_ACCOUNT_UPSTREAM_PORT}";
+  }
+
   server {
     listen ${NGINX_GATEWAY_LISTEN_PORT};
     server_name _;
 
+    # Redirect bare host to docs home
+    location = / {
+      return 301 /docs/;
+    }
+
+    location = /docs {
+      return 301 /docs/;
+    }
+
+    location = /docs/ {
+      root /usr/share/nginx/html;
+      index index.html;
+      try_files /docs/index.html =404;
+    }
+
+    location = /docs/specs/openapi.yaml {
+      root /usr/share/nginx/html;
+      default_type application/yaml;
+      types {
+        application/yaml yaml yml;
+      }
+    }
+
+    location = /docs/favicon.svg {
+      root /usr/share/nginx/html;
+      default_type image/svg+xml;
+      try_files /docs/favicon.svg =404;
+    }
+
+    # Unified API proxy with CORS + preflight handling
+    location ~ ^/v1/(?<service>base|album|llm|account)(?<tail>/.*)?$ {
+      add_header Access-Control-Allow-Origin $http_origin always;
+      add_header Access-Control-Allow-Credentials "true" always;
+      add_header Access-Control-Allow-Headers "Authorization,Content-Type,Accept,Origin,Cache-Control,X-Requested-With" always;
+      add_header Access-Control-Allow-Methods "GET,POST,PUT,PATCH,DELETE,OPTIONS" always;
+      add_header Vary "Origin" always;
+
+      if ($request_method = OPTIONS) {
+        return 204;
+      }
+
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Authorization $http_authorization;
+
+      # If map didn't find an upstream, fall back to 404
+      if ($api_upstream = "") {
+        return 404;
+      }
+
+      proxy_pass http://$api_upstream$request_uri;
+    }
+
+    # Fallback 404 with CORS headers
     location / {
       add_header Access-Control-Allow-Origin $http_origin always;
       add_header Access-Control-Allow-Credentials "true" always;
@@ -28,126 +94,6 @@ http {
       }
 
       return 404;
-    }
-
-    location /v1/base/ {
-      add_header Access-Control-Allow-Origin $http_origin always;
-      add_header Access-Control-Allow-Credentials "true" always;
-      add_header Access-Control-Allow-Headers "Authorization,Content-Type,Accept,Origin,Cache-Control,X-Requested-With" always;
-      add_header Access-Control-Allow-Methods "GET,POST,PUT,PATCH,DELETE,OPTIONS" always;
-      add_header Vary "Origin" always;
-
-      if ($request_method = OPTIONS) {
-        return 204;
-      }
-
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header Authorization $http_authorization;
-      proxy_pass http://${NGINX_GATEWAY_BASE_UPSTREAM_HOST}:${NGINX_GATEWAY_BASE_UPSTREAM_PORT};
-    }
-
-    location /v1/album {
-      add_header Access-Control-Allow-Origin $http_origin always;
-      add_header Access-Control-Allow-Credentials "true" always;
-      add_header Access-Control-Allow-Headers "Authorization,Content-Type,Accept,Origin,Cache-Control,X-Requested-With" always;
-      add_header Access-Control-Allow-Methods "GET,POST,PUT,PATCH,DELETE,OPTIONS" always;
-      add_header Vary "Origin" always;
-
-      if ($request_method = OPTIONS) {
-        return 204;
-      }
-
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header Authorization $http_authorization;
-      proxy_pass http://${NGINX_GATEWAY_IMAGE_UPSTREAM_HOST}:${NGINX_GATEWAY_IMAGE_UPSTREAM_PORT};
-    }
-
-    location /v1/album/ {
-      add_header Access-Control-Allow-Origin $http_origin always;
-      add_header Access-Control-Allow-Credentials "true" always;
-      add_header Access-Control-Allow-Headers "Authorization,Content-Type,Accept,Origin,Cache-Control,X-Requested-With" always;
-      add_header Access-Control-Allow-Methods "GET,POST,PUT,PATCH,DELETE,OPTIONS" always;
-      add_header Vary "Origin" always;
-
-      if ($request_method = OPTIONS) {
-        return 204;
-      }
-
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header Authorization $http_authorization;
-      proxy_pass http://${NGINX_GATEWAY_IMAGE_UPSTREAM_HOST}:${NGINX_GATEWAY_IMAGE_UPSTREAM_PORT};
-    }
-
-    location /v1/llm {
-      add_header Access-Control-Allow-Origin $http_origin always;
-      add_header Access-Control-Allow-Credentials "true" always;
-      add_header Access-Control-Allow-Headers "Authorization,Content-Type,Accept,Origin,Cache-Control,X-Requested-With" always;
-      add_header Access-Control-Allow-Methods "GET,POST,PUT,PATCH,DELETE,OPTIONS" always;
-      add_header Vary "Origin" always;
-
-      if ($request_method = OPTIONS) {
-        return 204;
-      }
-
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header Authorization $http_authorization;
-      proxy_pass http://${NGINX_GATEWAY_LLM_UPSTREAM_HOST}:${NGINX_GATEWAY_LLM_UPSTREAM_PORT};
-    }
-
-    location /v1/llm/ {
-      add_header Access-Control-Allow-Origin $http_origin always;
-      add_header Access-Control-Allow-Credentials "true" always;
-      add_header Access-Control-Allow-Headers "Authorization,Content-Type,Accept,Origin,Cache-Control,X-Requested-With" always;
-      add_header Access-Control-Allow-Methods "GET,POST,PUT,PATCH,DELETE,OPTIONS" always;
-      add_header Vary "Origin" always;
-
-      if ($request_method = OPTIONS) {
-        return 204;
-      }
-
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header Authorization $http_authorization;
-      proxy_pass http://${NGINX_GATEWAY_LLM_UPSTREAM_HOST}:${NGINX_GATEWAY_LLM_UPSTREAM_PORT};
-    }
-
-    location ~ ^/v1/account/?$ {
-      add_header Access-Control-Allow-Origin $http_origin always;
-      add_header Access-Control-Allow-Credentials "true" always;
-      add_header Access-Control-Allow-Headers "Authorization,Content-Type,Accept,Origin,Cache-Control,X-Requested-With" always;
-      add_header Access-Control-Allow-Methods "GET,POST,PUT,PATCH,DELETE,OPTIONS" always;
-      add_header Vary "Origin" always;
-
-      if ($request_method = OPTIONS) {
-        return 204;
-      }
-
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header Authorization $http_authorization;
-      proxy_pass http://${NGINX_GATEWAY_ACCOUNT_UPSTREAM_HOST}:${NGINX_GATEWAY_ACCOUNT_UPSTREAM_PORT};
     }
   }
 }
