@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/nzhussup-studio/backend-services/compare/v1.3.0...v1.4.0) (2026-03-27)
+
+
+### Features
+
+* add account-service ([353a067](https://github.com/nzhussup-studio/backend-services/commit/353a067176edf68b9c99a2177a0d8b64afe55b98))
+* add account-service as a thin wrapper for keycloak delete service ([2759bbc](https://github.com/nzhussup-studio/backend-services/commit/2759bbc9e8a630b454bbfb88e89c5fdd57894e14))
+* add security config into nginx ([5075dfe](https://github.com/nzhussup-studio/backend-services/commit/5075dfeab313563d435292b7de2447c68d6c6052))
+
+
+### Bug Fixes
+
+* cleanup unused envvars ([7951a7f](https://github.com/nzhussup-studio/backend-services/commit/7951a7f33cc5d5868f62761d44a5f0c6d786c036))
+* fix nginx config ([c96f357](https://github.com/nzhussup-studio/backend-services/commit/c96f357b5dedfee1c6bcce612cce14cb89e698e8))
+* fix status code for non admin in image service ([8cd9eef](https://github.com/nzhussup-studio/backend-services/commit/8cd9eefcf2f0767e4d90615315a743627eec6385))
+* json ([1f7d407](https://github.com/nzhussup-studio/backend-services/commit/1f7d40768767288d92876ff23fc39f38b7e41ede))
+* remove resolver from nginx ([f760e53](https://github.com/nzhussup-studio/backend-services/commit/f760e53afa0c3fe054b30b1493f68ad66860ab4a))
+
 ## [1.3.0](https://github.com/nzhussup-studio/backend-services/compare/v1.2.0...v1.3.0) (2026-03-20)
 
 
