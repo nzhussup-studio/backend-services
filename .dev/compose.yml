@@ -243,8 +243,8 @@ services:
 
   nginx-gateway:
     build:
-      context: ..
-      dockerfile: nginx-gateway/Dockerfile
+      context: ../nginx-gateway
+      dockerfile: Dockerfile
     depends_on:
       base-service:
         condition: service_started

@@ -22,10 +22,15 @@ read_manifest_services() {
 build_unified_openapi() {
   local output_file="${REPO_ROOT}/openapi.yaml"
   local manifest_file="$1"
+  local gateway_spec="${REPO_ROOT}/nginx-gateway/docs/specs/openapi.yaml"
 
   ruby "${HELPERS_DIR}/build_unified_openapi.rb" "$manifest_file" "$REPO_ROOT"
   sanitize_yaml_spec "$output_file"
   echo "Generated ${output_file}"
+
+  mkdir -p "$(dirname "$gateway_spec")"
+  cp "$output_file" "$gateway_spec"
+  echo "Synced ${gateway_spec}"
 }
 
 resolve_path() {

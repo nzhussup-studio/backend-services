@@ -12,6 +12,10 @@ http {
   keepalive_timeout 65;
   client_max_body_size 50m;
 
+  # DNS for variable-based proxy_pass (set via NGINX_GATEWAY_RESOLVER)
+  resolver ${NGINX_GATEWAY_RESOLVER} ipv6=off valid=30s;
+  resolver_timeout 5s;
+
   # Map service prefix to upstream host:port
   map $service $api_upstream {
     default "";
