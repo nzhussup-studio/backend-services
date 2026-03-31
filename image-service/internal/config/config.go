@@ -75,7 +75,7 @@ func Load() *Config {
 	cfg.Image = ImageConfig{
 		MaxUploadBytes: int64(env.GetInt("IMAGE_MAX_UPLOAD_MB", 25)) * 1024 * 1024,
 		ResizeWidth:    uint(env.GetInt("IMAGE_RESIZE_WIDTH", 800)),
-		JPEGQuality:    env.GetInt("IMAGE_JPEG_QUALITY", 80),
+		JPEGQuality:    env.GetInt("IMAGE_JPEG_QUALITY", 95),
 	}
 
 	return cfg
