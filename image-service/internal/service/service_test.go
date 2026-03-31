@@ -3,8 +3,9 @@ package service
 import (
 	"testing"
 
-	"image-service/internal/config/cache"
-	"image-service/internal/config/security"
+	"image-service/internal/auth"
+	"image-service/internal/cache"
+	appconfig "image-service/internal/config"
 	"image-service/internal/repository"
 
 	"github.com/go-playground/validator/v10"
@@ -14,10 +15,11 @@ import (
 func TestNewService(t *testing.T) {
 	mockStorage := &repository.Storage{}
 	mockRedis := &cache.RedisClient{}
-	mockSecurity := &security.AuthConfig{}
+	mockSecurity := &auth.AuthConfig{}
 	validate := validator.New()
+	imageCfg := appconfig.ImageConfig{}
 
-	svc := NewService(mockStorage, mockRedis, mockSecurity, validate)
+	svc := NewService(mockStorage, mockRedis, mockSecurity, validate, imageCfg)
 
 	assert.NotNil(t, svc)
 	assert.Equal(t, mockStorage, svc.storage)

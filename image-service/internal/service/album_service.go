@@ -2,8 +2,8 @@ package service
 
 import (
 	"fmt"
-	"image-service/internal/config/cache"
-	"image-service/internal/config/security"
+	"image-service/internal/auth"
+	"image-service/internal/cache"
 	custom_errors "image-service/internal/errors"
 	"image-service/internal/model"
 	"image-service/internal/repository"
@@ -16,7 +16,7 @@ import (
 type AlbumService struct {
 	storage        *repository.Storage
 	redis          cache.RedisClientInterface
-	securityConfig *security.AuthConfig
+	securityConfig *auth.AuthConfig
 	validate       *validator.Validate
 }
 
@@ -128,9 +128,9 @@ func filterAlbums(albums []*model.AlbumPreview, predicate func(*model.AlbumPrevi
 	return filtered
 }
 
-func allowedToReturn(c *gin.Context, album *model.Album, securityConfig *security.AuthConfig) error {
+func allowedToReturn(c *gin.Context, album *model.Album, securityConfig *auth.AuthConfig) error {
 	if album.Type == model.Private {
-		if err := security.CheckIsAdmin(c, securityConfig); err != nil {
+		if err := auth.CheckIsAdmin(c, securityConfig); err != nil {
 			return err
 		}
 	}

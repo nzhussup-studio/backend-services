@@ -1,8 +1,9 @@
 package service
 
 import (
-	"image-service/internal/config/cache"
-	"image-service/internal/config/security"
+	"image-service/internal/auth"
+	"image-service/internal/cache"
+	appconfig "image-service/internal/config"
 	"image-service/internal/model"
 	"image-service/internal/repository"
 	"mime/multipart"
@@ -14,6 +15,7 @@ import (
 type Service struct {
 	storage      *repository.Storage
 	validate     *validator.Validate
+	imageConfig  appconfig.ImageConfig
 	AlbumService interface {
 		GetAlbumsPreview(string) ([]*model.AlbumPreview, error)
 		GetAlbum(*gin.Context, string) (*model.Album, error)
@@ -32,12 +34,15 @@ type Service struct {
 	}
 }
 
-func NewService(storage *repository.Storage, redis *cache.RedisClient, securityConfig *security.AuthConfig, validate *validator.Validate) *Service {
+type ImageConfig = appconfig.ImageConfig
+
+func NewService(storage *repository.Storage, redis *cache.RedisClient, securityConfig *auth.AuthConfig, validate *validator.Validate, imageCfg ImageConfig) *Service {
 	return &Service{
 		storage:      storage,
 		validate:     validate,
+		imageConfig:  imageCfg,
 		AlbumService: &AlbumService{storage: storage, redis: redis, securityConfig: securityConfig, validate: validate},
-		ImageService: &ImageService{storage: storage, redis: redis, validate: validate},
+		ImageService: &ImageService{storage: storage, redis: redis, validate: validate, cfg: imageCfg},
 		CacheService: &CacheService{redis: redis},
 	}
 }

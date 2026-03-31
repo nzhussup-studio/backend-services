@@ -1,14 +1,13 @@
 package main
 
 import (
-	"image-service/internal/config/cache"
-	"image-service/internal/config/messaging"
-	"image-service/internal/config/security"
+	"image-service/internal/auth"
+	"image-service/internal/cache"
+	appconfig "image-service/internal/config"
 	"image-service/internal/controller"
 	"image-service/internal/model"
 	"image-service/internal/repository"
 	"image-service/internal/service"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -21,66 +20,63 @@ func init() {
 }
 
 type app struct {
-	config         config
-	securityConfig *security.AuthConfig
-	Controller     *controller.Controller
-	Service        *service.Service
-	Storage        *repository.Storage
-	Redis          *cache.RedisClient
+	config     *appconfig.Config
+	authCfg    *auth.AuthConfig
+	Controller *controller.Controller
+	Service    *service.Service
+	Storage    *repository.Storage
+	Redis      *cache.RedisClient
 }
 
-type config struct {
-	addr           string
-	port           int
-	storagePath    string
-	apiBasePath    string
-	redisConfig    *redisConfig
-	keycloakConfig *keycloakConfig
-	kafkaConfig    *kafkaConfig
-}
+func newApp(config *appconfig.Config) *app {
+	authCfg := &auth.AuthConfig{
+		JWKSetURL:        config.Security.JWKSetURL,
+		ExpectedIssuer:   config.Security.ExpectedIssuer,
+		ExpectedAudience: config.Security.ExpectedAudience,
+		BackendClientID:  config.Security.BackendClientID,
+		Rules: []auth.AuthRule{
+			{
+				Path: config.API.BasePath,
+				QueryParams: map[string]string{
+					"type": "private",
+				},
+			},
+			{
+				Path: config.API.BasePath,
+				QueryParams: map[string]string{
+					"type": "semi-public",
+				},
+			},
+			{
+				Path: config.API.BasePath,
+				QueryParams: map[string]string{
+					"type": "all",
+				},
+			},
+		},
+	}
 
-type redisConfig struct {
-	addr     string
-	password string
-	db       int
-	duration time.Duration
-}
-
-type kafkaConfig struct {
-	brokerList []string
-	topic      string
-}
-
-type keycloakConfig struct {
-	jwkSetURL        string
-	expectedIssuer   string
-	expectedAudience string
-	backendClientID  string
-}
-
-func newApp(config config, securityConfig *security.AuthConfig) *app {
 	redisClient := cache.NewRedisClient(
-		config.redisConfig.addr,
-		config.redisConfig.password,
-		config.redisConfig.db,
-		config.redisConfig.duration,
+		config.Redis.Addr,
+		config.Redis.Password,
+		config.Redis.DB,
+		config.Redis.TTL,
 	)
-	producer := messaging.NewKafkaProducer(config.kafkaConfig.brokerList, config.kafkaConfig.topic)
-	storage := repository.NewStorage(config.storagePath, config.apiBasePath)
-	service := service.NewService(storage, redisClient, securityConfig, validate)
-	controller := controller.NewController(service, producer)
+	storage := repository.NewStorage(config.Storage.Path, config.API.BasePath)
+	service := service.NewService(storage, redisClient, authCfg, validate, config.Image)
+	controller := controller.NewController(service)
 
 	return &app{
-		config:         config,
-		securityConfig: securityConfig,
-		Controller:     controller,
-		Service:        service,
-		Storage:        storage,
-		Redis:          redisClient,
+		config:     config,
+		authCfg:    authCfg,
+		Controller: controller,
+		Service:    service,
+		Storage:    storage,
+		Redis:      redisClient,
 	}
 }
 
 func (a *app) Run() {
 	router := a.GetRouter()
-	router.Run(a.config.addr)
+	router.Run(a.config.Server.Addr)
 }

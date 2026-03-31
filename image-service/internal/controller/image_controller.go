@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"image-service/internal/config/messaging"
 	custom_errors "image-service/internal/errors"
 	customJson "image-service/internal/json"
 	"image-service/internal/service"
@@ -11,8 +10,7 @@ import (
 )
 
 type ImageController struct {
-	service  *service.Service
-	producer messaging.ProducerInterface
+	service *service.Service
 }
 
 // Upload godoc
@@ -62,7 +60,7 @@ func (ctrl *ImageController) Upload(c *gin.Context) {
 	// 	log.Printf("Error marshaling file metadata: %v", err)
 	// 	return
 	// }
-	// err = ctrl.producer.SendMessage(message)
+	// producer removed
 	// if err != nil {
 	// 	log.Printf("Error sending message to Kafka: %v", err)
 	// 	return

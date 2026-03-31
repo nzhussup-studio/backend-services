@@ -1,4 +1,4 @@
-package security
+package auth
 
 type AuthRule struct {
 	Path        string

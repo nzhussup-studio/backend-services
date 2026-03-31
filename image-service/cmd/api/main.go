@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"image-service/internal/env"
-	"time"
+	appconfig "image-service/internal/config"
 
 	_ "image-service/docs"
 )
@@ -25,42 +23,9 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	var port int = 8085
+	cfg := appconfig.Load()
 
-	cfg := config{
-		addr:        fmt.Sprintf(":%d", port),
-		port:        port,
-		storagePath: "var/images",
-		apiBasePath: "/v1/album",
-		redisConfig: &redisConfig{
-			addr: fmt.Sprintf(
-				"%s:%d",
-				env.GetString("REDIS_HOST", "localhost"),
-				env.GetInt("REDIS_PORT", 6379)),
-			password: "",
-			db:       0,
-			duration: 24 * time.Hour,
-		},
-		keycloakConfig: &keycloakConfig{
-			jwkSetURL: env.GetString(
-				"KEYCLOAK_JWK_SET_URL",
-				"http://localhost:8081/realms/backend-auth-dev/protocol/openid-connect/certs",
-			),
-			expectedIssuer:   env.GetString("KEYCLOAK_EXPECTED_ISSUER", ""),
-			expectedAudience: env.GetString("KEYCLOAK_EXPECTED_AUDIENCE", ""),
-			backendClientID:  env.GetString("KEYCLOAK_BACKEND_CLIENT_ID", "backend-auth-client"),
-		},
-		kafkaConfig: &kafkaConfig{
-			// brokerList: []string{
-			// 	env.GetString("KAFKA_BROKER_1", "kafka-broker-1.default.svc.cluster.local:29092"),
-			// },
-			// topic: env.GetString("KAFKA_TOPIC", "image-service"),
-		},
-	}
-
-	secuirityCfg := GetSecurityConfig(&cfg)
-
-	app := newApp(cfg, secuirityCfg)
+	app := newApp(cfg)
 	app.Redis.CheckHealth()
 
 	app.Run()

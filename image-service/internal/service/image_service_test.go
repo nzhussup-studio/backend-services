@@ -85,6 +85,11 @@ func TestUploadImage_InvalidType(t *testing.T) {
 		storage:  &repository.Storage{Image: mockImageRepo},
 		redis:    mockRedis,
 		validate: validator.New(),
+		cfg: ImageConfig{
+			MaxUploadBytes: 25 * 1024 * 1024,
+			ResizeWidth:    800,
+			JPEGQuality:    80,
+		},
 	}
 
 	file := createMockFileHeader("bad.bmp", "image/bmp", []byte("data"))
@@ -101,6 +106,11 @@ func TestServeImage_CacheHit(t *testing.T) {
 		storage:  &repository.Storage{Path: "/mock/path"},
 		redis:    mockRedis,
 		validate: validator.New(),
+		cfg: ImageConfig{
+			MaxUploadBytes: 25 * 1024 * 1024,
+			ResizeWidth:    800,
+			JPEGQuality:    80,
+		},
 	}
 
 	mockRedis.On("Get", "image:album1:img1", mock.AnythingOfType("*string")).Run(func(args mock.Arguments) {
@@ -124,6 +134,11 @@ func TestDeleteImage_Success(t *testing.T) {
 		storage:  &repository.Storage{Image: mockImageRepo},
 		redis:    mockRedis,
 		validate: validator.New(),
+		cfg: ImageConfig{
+			MaxUploadBytes: 25 * 1024 * 1024,
+			ResizeWidth:    800,
+			JPEGQuality:    80,
+		},
 	}
 
 	mockImageRepo.On("Delete", "album1", "img1").Return(nil)
@@ -144,6 +159,11 @@ func TestServeImage_FileNotFound(t *testing.T) {
 		storage:  &repository.Storage{Path: "/non/existent/path"},
 		redis:    mockRedis,
 		validate: validator.New(),
+		cfg: ImageConfig{
+			MaxUploadBytes: 25 * 1024 * 1024,
+			ResizeWidth:    800,
+			JPEGQuality:    80,
+		},
 	}
 
 	mockRedis.On("Get", "image:album1:img1", mock.AnythingOfType("*string")).Return(errors.New("cache miss"))
@@ -163,6 +183,11 @@ func TestUploadImage_ConcurrentSuccess(t *testing.T) {
 		storage:  &repository.Storage{Image: mockImageRepo, Path: "/mock/path"},
 		redis:    mockRedis,
 		validate: validator.New(),
+		cfg: ImageConfig{
+			MaxUploadBytes: 25 * 1024 * 1024,
+			ResizeWidth:    800,
+			JPEGQuality:    80,
+		},
 	}
 
 	numFiles := 30

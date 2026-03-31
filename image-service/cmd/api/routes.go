@@ -1,7 +1,7 @@
 package main
 
 import (
-	"image-service/internal/config/security"
+	"image-service/internal/auth"
 	"image-service/internal/controller"
 
 	"github.com/gin-gonic/gin"
@@ -12,9 +12,9 @@ import (
 func (a *app) GetRouter() *gin.Engine {
 	r := gin.Default()
 
-	r.Use(security.AuthMiddleware(a.securityConfig))
+	r.Use(auth.AuthMiddleware(a.authCfg))
 
-	v1 := r.Group(a.config.apiBasePath)
+	v1 := r.Group(a.config.API.BasePath)
 	v1.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	v1.GET("/health", controller.HealthCheckHandler)
 	v1.DELETE("/cache", a.Controller.CacheController.ClearCache)

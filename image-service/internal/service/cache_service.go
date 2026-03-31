@@ -1,6 +1,6 @@
 package service
 
-import "image-service/internal/config/cache"
+import "image-service/internal/cache"
 
 type CacheService struct {
 	redis cache.RedisClientInterface

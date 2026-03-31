@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"image-service/internal/config/messaging"
 	"image-service/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -27,11 +26,11 @@ type Controller struct {
 	}
 }
 
-func NewController(service *service.Service, producer *messaging.Producer) *Controller {
+func NewController(service *service.Service) *Controller {
 	return &Controller{
 		service:         service,
 		AlbumController: &AlbumController{service: service},
-		ImageController: &ImageController{service: service, producer: producer},
+		ImageController: &ImageController{service: service},
 		CacheController: &CacheController{service: service},
 	}
 }

@@ -1,11 +1,12 @@
 package service
 
 import (
-	"image-service/internal/config/security"
+	"testing"
+
+	"image-service/internal/auth"
 	custom_errors "image-service/internal/errors"
 	"image-service/internal/model"
 	"image-service/internal/repository"
-	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -113,11 +114,11 @@ func TestGetAlbum_Private_Admin(t *testing.T) {
 	album := &model.Album{ID: "album1", Type: model.Private}
 	service, _, mockRedis := setupAlbumServiceWithMock(album)
 
-	original := security.CheckIsAdmin
-	security.CheckIsAdmin = func(ctx *gin.Context, config *security.AuthConfig) error {
+	original := auth.CheckIsAdmin
+	auth.CheckIsAdmin = func(ctx *gin.Context, config *auth.AuthConfig) error {
 		return nil
 	}
-	defer func() { security.CheckIsAdmin = original }()
+	defer func() { auth.CheckIsAdmin = original }()
 
 	result, err := service.GetAlbum(&gin.Context{}, album.ID)
 
@@ -130,11 +131,11 @@ func TestGetAlbum_Private_NotAdmin(t *testing.T) {
 	album := &model.Album{ID: "album2", Type: model.Private}
 	service, _, mockRedis := setupAlbumServiceWithMock(album)
 
-	original := security.CheckIsAdmin
-	security.CheckIsAdmin = func(ctx *gin.Context, config *security.AuthConfig) error {
+	original := auth.CheckIsAdmin
+	auth.CheckIsAdmin = func(ctx *gin.Context, config *auth.AuthConfig) error {
 		return custom_errors.NewError(custom_errors.ErrForbidden, "User is not an admin")
 	}
-	defer func() { security.CheckIsAdmin = original }()
+	defer func() { auth.CheckIsAdmin = original }()
 
 	result, err := service.GetAlbum(&gin.Context{}, album.ID)
 

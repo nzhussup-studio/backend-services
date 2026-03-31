@@ -6,8 +6,9 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
+	"io"
 	"os"
-	"sync"
+	"strings"
 
 	"github.com/adrium/goheif"
 	"github.com/disintegration/imaging"
@@ -17,74 +18,123 @@ import (
 	custom_errors "image-service/internal/errors"
 )
 
-var MetadataMutex sync.Mutex
+// CompressImage decodes, normalises (applies EXIF orientation), resizes, and re-encodes
+// the provided image bytes. It returns the compressed bytes and the final extension
+// actually used for encoding ("jpeg" for both jpg/jpeg/heic inputs, "png" otherwise).
+func CompressImage(data []byte, extension string, resizeWidth uint, jpegQuality int) ([]byte, string, error) {
+	extension = normalizeExtension(extension)
 
-func CompressImage(reader *bytes.Reader, extension string) ([]byte, error) {
-	var img image.Image
-	var err error
-	if extension == "heic" {
-		var err error
-		img, err = ProcessHEIC(reader)
-		if err != nil {
-			return nil, err
-		}
-		extension = "jpeg"
-	} else {
-		img, _, err = image.Decode(reader)
-		if err != nil {
-			return nil, custom_errors.NewError(custom_errors.ErrBadRequest, "failed to decode image")
-		}
+	img, err := decodeImage(data, extension)
+	if err != nil {
+		return nil, "", err
 	}
 
-	compressedImage := resize.Resize(800, 0, img, resize.Lanczos3)
+	if resizeWidth == 0 {
+		resizeWidth = 800
+	}
+	if jpegQuality == 0 {
+		jpegQuality = 80
+	}
+
+	// HEIC is always transcoded to JPEG for compatibility.
+	targetExt := extension
+	if extension == "heic" {
+		targetExt = "jpeg"
+	}
+
+	compressedImage := resize.Resize(resizeWidth, 0, img, resize.Lanczos3)
 
 	var buf bytes.Buffer
 
-	switch extension {
+	switch targetExt {
 	case "jpeg", "jpg":
-		err = jpeg.Encode(&buf, compressedImage, &jpeg.Options{Quality: 80})
+		err = jpeg.Encode(&buf, compressedImage, &jpeg.Options{Quality: jpegQuality})
 	case "png":
 		err = png.Encode(&buf, compressedImage)
 	default:
-		return nil, custom_errors.NewError(custom_errors.ErrBadRequest, "unsupported image format. only jpeg, jpg, and png are allowed")
+		return nil, "", custom_errors.NewError(custom_errors.ErrBadRequest, "unsupported image format. only jpeg, jpg, and png are allowed")
 	}
 
 	if err != nil {
-		return nil, custom_errors.NewError(custom_errors.ErrInternalServer, "failed to encode image")
+		return nil, "", custom_errors.NewError(custom_errors.ErrInternalServer, "failed to encode image")
 	}
 
-	return buf.Bytes(), nil
+	return buf.Bytes(), targetExt, nil
 }
 
-func ProcessHEIC(reader *bytes.Reader) (image.Image, error) {
+func decodeImage(data []byte, extension string) (image.Image, error) {
+	extension = normalizeExtension(extension)
+
+	if extension == "heic" {
+		return processHEIC(data)
+	}
+
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, custom_errors.NewError(custom_errors.ErrBadRequest, "failed to decode image")
+	}
+
+	orientation := extractOrientation(bytes.NewReader(data))
+	if orientation > 1 {
+		img = applyOrientation(img, orientation)
+	}
+
+	return img, nil
+}
+
+func processHEIC(data []byte) (image.Image, error) {
+	reader := bytes.NewReader(data)
+
 	img, err := goheif.Decode(reader)
 	if err != nil {
 		return nil, custom_errors.NewError(custom_errors.ErrBadRequest, "failed to decode HEIC image")
 	}
 
+	// Reset cursor before extracting EXIF; goheif.Decode consumes the reader.
+	if _, err := reader.Seek(0, io.SeekStart); err != nil {
+		return nil, custom_errors.NewError(custom_errors.ErrInternalServer, "failed to rewind HEIC reader")
+	}
+
 	exifBytes, err := goheif.ExtractExif(reader)
 	if err != nil {
-		return nil, custom_errors.NewError(custom_errors.ErrBadRequest, "failed to extract EXIF data from HEIC image")
+		// Orientation is helpful but non-critical; keep the decoded image.
+		return img, nil
 	}
 	if len(exifBytes) == 0 {
 		return img, nil
 	}
 
-	x, err := exif.Decode(bytes.NewReader(exifBytes))
-	if err != nil {
-		return nil, custom_errors.NewError(custom_errors.ErrBadRequest, "failed to decode EXIF data")
+	orientation := extractOrientation(bytes.NewReader(exifBytes))
+	if orientation > 1 {
+		img = applyOrientation(img, orientation)
 	}
 
-	orientation, err := x.Get(exif.Orientation)
+	return img, nil
+}
+
+func extractOrientation(r io.Reader) int {
+	x, err := exif.Decode(r)
 	if err != nil {
-		return img, nil // No orientation tag found, fallback to unrotated image
-	}
-	orientationValue, err := orientation.Int(0)
-	if err != nil {
-		return img, nil // Fallback to unrotated image
+		return 1
 	}
 
-	return applyOrientation(img, orientationValue), nil
+	tag, err := x.Get(exif.Orientation)
+	if err != nil {
+		return 1
+	}
+
+	val, err := tag.Int(0)
+	if err != nil {
+		return 1
+	}
+
+	return val
+}
+
+func normalizeExtension(ext string) string {
+	ext = strings.ToLower(ext)
+	ext = strings.TrimPrefix(ext, ".")
+	return ext
 }
 
 func applyOrientation(img image.Image, orientation int) image.Image {

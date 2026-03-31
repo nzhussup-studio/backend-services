@@ -1,9 +1,8 @@
 package service
 
 import (
-	"bytes"
 	"fmt"
-	"image-service/internal/config/cache"
+	"image-service/internal/cache"
 	custom_errors "image-service/internal/errors"
 	"image-service/internal/model"
 	"image-service/internal/repository"
@@ -22,6 +21,7 @@ type ImageService struct {
 	storage  *repository.Storage
 	redis    cache.RedisClientInterface
 	validate *validator.Validate
+	cfg      ImageConfig
 }
 
 func (s *ImageService) UploadImage(albumID string, files []*multipart.FileHeader) ([]*model.Image, error) {
@@ -46,6 +46,11 @@ func (s *ImageService) UploadImage(albumID string, files []*multipart.FileHeader
 		go func(file *multipart.FileHeader) {
 			defer wg.Done()
 
+			if file.Size > 0 && file.Size > s.cfg.MaxUploadBytes {
+				errChan <- custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("image file too large: max %d MB", s.cfg.MaxUploadBytes/1024/1024))
+				return
+			}
+
 			fileData, err := file.Open()
 			if err != nil {
 				errChan <- custom_errors.NewError(custom_errors.ErrInternalServer, "failed to open image file")
@@ -57,24 +62,26 @@ func (s *ImageService) UploadImage(albumID string, files []*multipart.FileHeader
 				Type: model.ImageType(file.Header.Get("Content-Type")),
 			}
 
-			data, err := io.ReadAll(fileData)
+			limitedReader := io.LimitReader(fileData, s.cfg.MaxUploadBytes+1)
+			data, err := io.ReadAll(limitedReader)
 			if err != nil {
 				errChan <- custom_errors.NewError(custom_errors.ErrInternalServer, "failed to read image file")
 				return
 			}
+			if int64(len(data)) > s.cfg.MaxUploadBytes {
+				errChan <- custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("image file too large: max %d MB", s.cfg.MaxUploadBytes/1024/1024))
+				return
+			}
 
-			reader := bytes.NewReader(data)
-			extension := strings.Split(string(image.Type), "/")[1]
+			extension := strings.ToLower(strings.Split(string(image.Type), "/")[1])
 
-			compressedData, err := utils.CompressImage(reader, extension)
+			compressedData, finalExt, err := utils.CompressImage(data, extension, s.cfg.ResizeWidth, s.cfg.JPEGQuality)
 			if err != nil {
 				errChan <- err
 				return
 			}
 
-			if extension == "heic" {
-				image.Type = model.JPEG
-			}
+			image.Type = mimeTypeFromExtension(finalExt)
 			image.Data = compressedData
 
 			savedImage, err := s.storage.Image.Upload(albumID, image)
@@ -161,4 +168,17 @@ func (s *ImageService) ServeImage(albumID string, imageID string) (string, error
 	// CACHING
 	s.redis.Set(cacheKey, imagePath)
 	return imagePath, nil
+}
+
+func mimeTypeFromExtension(ext string) model.ImageType {
+	switch strings.ToLower(ext) {
+	case "jpeg", "jpg":
+		return model.JPEG
+	case "png":
+		return model.PNG
+	case "heic":
+		return model.HEIC
+	default:
+		return model.ImageType(fmt.Sprintf("image/%s", ext))
+	}
 }

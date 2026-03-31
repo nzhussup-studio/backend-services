@@ -37,21 +37,6 @@ func (m *MockImageService) RenameImage(albumID, imageID, newName string) (*model
 	return nil, args.Error(1)
 }
 
-// PRDUCER
-
-type MockProducer struct {
-	mock.Mock
-}
-
-func (m *MockProducer) SendMessage(message []byte) error {
-	args := m.Called(message)
-	return args.Error(0)
-}
-
-func (m *MockProducer) Close() {
-	m.Called()
-}
-
 // CACHE SERVICE
 
 type MockCacheService struct {

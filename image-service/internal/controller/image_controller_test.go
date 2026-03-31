@@ -53,11 +53,9 @@ func TestImageController_Upload_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockSvc := new(MockImageService)
-	mockProd := new(MockProducer)
 
 	ctrl := &ImageController{
-		service:  &service.Service{ImageService: mockSvc},
-		producer: mockProd,
+		service: &service.Service{ImageService: mockSvc},
 	}
 
 	fileHeader, err := createMultipartFile("file", "test.jpg", "image/jpeg", "dummy image content")
@@ -67,8 +65,6 @@ func TestImageController_Upload_Success(t *testing.T) {
 	mockSvc.On("UploadImage", albumID, mock.Anything).Return([]*model.Image{
 		{ID: "img1", Type: model.JPEG},
 	}, nil)
-
-	// mockProd.On("SendMessage", mock.Anything).Return(nil)
 
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -83,7 +79,7 @@ func TestImageController_Upload_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 	mockSvc.AssertExpectations(t)
-	mockProd.AssertExpectations(t)
+	// producer was removed; no assertions
 
 	var respBody map[string]interface{}
 	err = json.Unmarshal(w.Body.Bytes(), &respBody)
@@ -95,11 +91,9 @@ func TestImageController_Upload_NoFiles(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockSvc := new(MockImageService)
-	mockProd := new(MockProducer)
 
 	ctrl := &ImageController{
-		service:  &service.Service{ImageService: mockSvc},
-		producer: mockProd,
+		service: &service.Service{ImageService: mockSvc},
 	}
 
 	w := httptest.NewRecorder()
@@ -112,18 +106,16 @@ func TestImageController_Upload_NoFiles(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	mockSvc.AssertNotCalled(t, "UploadImage", mock.Anything, mock.Anything)
-	mockProd.AssertNotCalled(t, "SendMessage", mock.Anything)
+	// producer was removed; no assertions
 }
 
 func TestImageController_Upload_ServiceError(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockSvc := new(MockImageService)
-	mockProd := new(MockProducer)
 
 	ctrl := &ImageController{
-		service:  &service.Service{ImageService: mockSvc},
-		producer: mockProd,
+		service: &service.Service{ImageService: mockSvc},
 	}
 
 	fileHeader, err := createMultipartFile("file", "test.jpg", "image/jpeg", "dummy content")
@@ -144,7 +136,7 @@ func TestImageController_Upload_ServiceError(t *testing.T) {
 
 	assert.NotEqual(t, http.StatusCreated, w.Code)
 	mockSvc.AssertExpectations(t)
-	mockProd.AssertNotCalled(t, "SendMessage", mock.Anything)
+	// producer removed; no assertions
 }
 
 func TestImageController_Delete_Success(t *testing.T) {
