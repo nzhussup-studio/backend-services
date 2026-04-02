@@ -55,7 +55,6 @@ For CORS and browser redirects, use exact origins and hosts rather than parent d
 Example production list:
 
 - `https://admin.nzhussup.dev`
-- `https://admin.nzhussup.com`
 
 Only keep the hosts you actually need. Subdomains are separate origins for CORS.
 
