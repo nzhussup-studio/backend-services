@@ -1,5 +1,6 @@
 TRUNCATE TABLE
   certificates,
+  cv_generator_preferences,
   education,
   projects,
   skills,
@@ -143,3 +144,8 @@ INSERT INTO certificates (name, url, display_order) VALUES
   ('Kubernetes Basics', 'https://kubernetes.io/', 4),
   ('GitHub Actions CI/CD', 'https://docs.github.com/actions', 5),
   ('PostgreSQL for Developers', 'https://www.postgresql.org/', 6);
+
+INSERT INTO cv_generator_preferences (preferences_json) VALUES
+  (
+    '{}'::jsonb
+  );

@@ -28,6 +28,7 @@ public class SecurityConfig {
         http
                 .csrf(csfr -> csfr.disable())
                 .authorizeHttpRequests(requests -> {
+                    requests.requestMatchers("/v1/base/cv-generator-preference/**").authenticated();
                     requests.requestMatchers(HttpMethod.GET).permitAll();
                     requests.anyRequest().hasRole("ADMIN");
                 })

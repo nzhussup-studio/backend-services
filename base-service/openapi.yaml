@@ -248,6 +248,67 @@ paths:
       responses:
         '200':
           description: OK
+  "/v1/base/cv-generator-preference":
+    get:
+      tags:
+      - cv-generator-preference-controller
+      operationId: listCvGeneratorPreference
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    put:
+      tags:
+      - cv-generator-preference-controller
+      operationId: updateCvGeneratorPreference
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CvGeneratorPreference"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/CvGeneratorPreference"
+    post:
+      tags:
+      - cv-generator-preference-controller
+      operationId: createCvGeneratorPreference
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CvGeneratorPreference"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/CvGeneratorPreference"
+    delete:
+      tags:
+      - cv-generator-preference-controller
+      operationId: deleteCvGeneratorPreference
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CvGeneratorPreference"
+        required: true
+      responses:
+        '200':
+          description: OK
   "/v1/base/certificate":
     get:
       tags:
@@ -399,6 +460,16 @@ components:
         displayOrder:
           type: integer
           format: int32
+    CvGeneratorPreference:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        preferencesJson:
+          type: object
+          additionalProperties:
+            type: object
     Certificate:
       type: object
       properties:

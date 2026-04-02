@@ -15,6 +15,12 @@
 - `GET` endpoints are public
 - non-`GET` endpoints require `ROLE_ADMIN`
 - JWT validation is performed locally against Keycloak JWKS
+- small exception: `GET /v1/base/cv-generator-preference` also requires `ROLE_ADMIN`
+
+## CV Generator Preferences
+
+- Stored in `cv_generator_preferences` table as JSON.
+- CRUD endpoint: `/v1/base/cv-generator-preference`.
 
 ## Runtime Inputs
 
