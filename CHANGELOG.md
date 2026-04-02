@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/nzhussup-studio/backend-services/compare/v1.4.0...v1.5.0) (2026-04-02)
+
+
+### Features
+
+* persist cv generator preferences ([749f871](https://github.com/nzhussup-studio/backend-services/commit/749f871e1f88b594d32f617e1110bc3c327ae249))
+
 ## [1.4.0](https://github.com/nzhussup-studio/backend-services/compare/v1.3.0...v1.4.0) (2026-03-27)
 
 
