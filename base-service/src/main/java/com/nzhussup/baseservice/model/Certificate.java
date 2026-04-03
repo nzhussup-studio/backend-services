@@ -30,6 +30,9 @@ public class Certificate implements Identifiable, Serializable {
     @Column(nullable = false)
     private String url;
 
+    @Column
+    private String issuer;
+
     @Column(nullable = false)
     private int displayOrder;
 
@@ -38,5 +41,4 @@ public class Certificate implements Identifiable, Serializable {
         return id;
     }
 }
-
 

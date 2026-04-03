@@ -480,6 +480,8 @@ components:
           type: string
         url:
           type: string
+        issuer:
+          type: string
         displayOrder:
           type: integer
           format: int32
