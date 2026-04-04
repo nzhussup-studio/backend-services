@@ -22,6 +22,64 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/llm/configuration": {
+            "get": {
+                "description": "Returns active runtime LLM settings such as model, prompts, and parallel generation flag.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "configuration"
+                ],
+                "summary": "Get current LLM configuration",
+                "responses": {
+                    "200": {
+                        "description": "Current configuration",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ConfigurationResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates runtime LLM settings such as model, prompts, and parallel generation flag.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "configuration"
+                ],
+                "summary": "Update LLM configuration",
+                "parameters": [
+                    {
+                        "description": "Configuration overrides",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ConfigurationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated configuration",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ConfigurationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid configuration payload",
+                        "schema": {
+                            "$ref": "#/definitions/dto.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/llm/health": {
             "get": {
                 "description": "Checks the connectivity and health of dependent services, particularly Redis.",
@@ -61,7 +119,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Language code for the summary output. Supported values: 'en' (English), 'kz' (Kazakh), 'de' (German). Defaults to 'en'.",
                         "name": "lang",
                         "in": "query"
                     }
@@ -101,6 +158,49 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.ConfigurationRequest": {
+            "type": "object",
+            "properties": {
+                "enable_parallel_generation": {
+                    "type": "boolean"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "system_prompt_de": {
+                    "type": "string"
+                },
+                "system_prompt_en": {
+                    "type": "string"
+                },
+                "system_prompt_kz": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ConfigurationResponse": {
+            "type": "object",
+            "properties": {
+                "enable_parallel_generation": {
+                    "type": "boolean"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "system_prompt_de": {
+                    "type": "string"
+                },
+                "system_prompt_en": {
+                    "type": "string"
+                },
+                "system_prompt_kz": {
+                    "type": "string"
                 }
             }
         }

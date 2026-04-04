@@ -5,6 +5,7 @@ import (
 	"llm-service/internal/api/dto"
 	"llm-service/internal/summarizer"
 	"llm-service/internal/utils"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,10 @@ type Handler struct {
 }
 
 func New(config *configs.Config, redis Cache) *Handler {
+	if err := summarizer.InitRuntimeConfigStore(redis); err != nil {
+		slog.Error("failed to initialize runtime config from redis", slog.String("error", err.Error()))
+	}
+
 	return &Handler{
 		config: config,
 		redis:  redis,
@@ -34,7 +39,7 @@ func New(config *configs.Config, redis Cache) *Handler {
 // @Description  Retrieves structured personal data (e.g., work experience, education), generates a professional summary using a large language model (LLM), and returns it in the requested language.
 // @Tags         summarizer
 // @Produce      json
-// @Param        lang  query     string  false  "Language code for the summary output. Supported values: 'en' (English), 'kz' (Kazakh), 'de' (German). Defaults to 'en'."
+// @Param        request  query  dto.SummarizeQuery  false  "Summarize query parameters"
 // @Success      200   {object}  dto.APIResponse  "Generated professional summary"
 // @Failure      400   {object}  dto.APIResponse  "Invalid query parameters"
 // @Failure      500   {object}  dto.APIResponse  "Internal server error with error details"

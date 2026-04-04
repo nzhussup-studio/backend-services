@@ -79,8 +79,10 @@ func (s *Summarizer) Summarize(ctx context.Context) (string, error) {
 		return "", fmt.Errorf(wrapper, ErrFailedToGetSummary, err)
 	}
 
-	// Background summaries for other languages
-	go s.backgroundSummarizeOthers(context.Background(), pd)
+	if GetRuntimeConfig().EnableParallelGeneration {
+		// Background summaries for other languages
+		go s.backgroundSummarizeOthers(context.Background(), pd)
+	}
 
 	return currentSummary, nil
 }
@@ -140,7 +142,7 @@ func (s *Summarizer) doFullSummarization(ctx context.Context, pd *model.Personal
 	}
 
 	payload := map[string]interface{}{
-		"model": "tngtech/deepseek-r1t2-chimera:free",
+		"model": GetRuntimeConfig().Model,
 		"messages": []map[string]string{
 			{"role": "system", "content": systemPrompt},
 			{"role": "user", "content": userPrompt},

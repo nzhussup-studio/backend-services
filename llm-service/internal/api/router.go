@@ -11,4 +11,6 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	api.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	api.GET("/health", s.handler.GetHealth)
 	api.GET("/summarize", s.handler.GetSummarizer)
+	api.GET("/configuration", s.handler.GetConfiguration)
+	api.PUT("/configuration", s.handler.PutConfiguration)
 }

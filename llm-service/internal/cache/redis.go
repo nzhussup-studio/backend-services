@@ -48,6 +48,10 @@ func NewRedisClient(addr, password string, db int, duration time.Duration) *Redi
 }
 
 func (r *RedisClient) Set(key string, value any) error {
+	return r.SetWithTTL(key, value, r.Duration)
+}
+
+func (r *RedisClient) SetWithTTL(key string, value any, ttl time.Duration) error {
 	ctx := context.Background()
 
 	jsonData, err := json.Marshal(value)
@@ -55,7 +59,7 @@ func (r *RedisClient) Set(key string, value any) error {
 		return fmt.Errorf(wrapper, err, "failed to marshal value for cache")
 	}
 
-	err = r.Client.Set(ctx, key, jsonData, r.Duration).Err()
+	err = r.Client.Set(ctx, key, jsonData, ttl).Err()
 	if err != nil {
 		return fmt.Errorf(wrapper, err, "failed to set value in cache")
 	}

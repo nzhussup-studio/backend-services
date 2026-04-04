@@ -886,6 +886,46 @@ paths:
       summary: Health check endpoint
       tags:
       - Health
+  "/v1/llm/configuration":
+    get:
+      description: Returns active runtime LLM settings such as model, prompts, and
+        parallel generation flag.
+      responses:
+        '200':
+          description: Current configuration
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.ConfigurationResponse"
+      summary: Get current LLM configuration
+      tags:
+      - configuration
+    put:
+      description: Updates runtime LLM settings such as model, prompts, and parallel
+        generation flag.
+      responses:
+        '200':
+          description: Updated configuration
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.ConfigurationResponse"
+        '400':
+          description: Invalid configuration payload
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.APIResponse"
+      summary: Update LLM configuration
+      tags:
+      - configuration
+      requestBody:
+        required: true
+        description: Configuration overrides
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/llm_service_dto.ConfigurationRequest"
   "/v1/llm/health":
     get:
       description: Checks the connectivity and health of dependent services, particularly
@@ -934,9 +974,7 @@ paths:
       tags:
       - summarizer
       parameters:
-      - description: 'Language code for the summary output. Supported values: ''en''
-          (English), ''kz'' (Kazakh), ''de'' (German). Defaults to ''en''.'
-        in: query
+      - in: query
         name: lang
         schema:
           type: string
@@ -1199,6 +1237,34 @@ components:
           type: string
         status:
           type: integer
+      type: object
+    llm_service_dto.ConfigurationRequest:
+      properties:
+        enable_parallel_generation:
+          type: boolean
+        model:
+          type: string
+        system_prompt_de:
+          type: string
+        system_prompt_en:
+          type: string
+        system_prompt_kz:
+          type: string
+      type: object
+    llm_service_dto.ConfigurationResponse:
+      properties:
+        enable_parallel_generation:
+          type: boolean
+        model:
+          type: string
+        status:
+          type: integer
+        system_prompt_de:
+          type: string
+        system_prompt_en:
+          type: string
+        system_prompt_kz:
+          type: string
       type: object
     account_service_model.ErrorResponse:
       properties:
