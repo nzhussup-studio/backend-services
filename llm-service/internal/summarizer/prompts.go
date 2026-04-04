@@ -1,5 +1,12 @@
 package summarizer
 
+import (
+	"encoding/json"
+	"fmt"
+	"llm-service/internal/model"
+	"log/slog"
+)
+
 const (
 	SYSTEM_PROMPT_EN = `You are a helpful assistant summarizing the profile of Nurzhanat Zhussup, a male Software Engineer.
 The summary should:
@@ -36,3 +43,27 @@ Die Zusammenfassung sollte:
 `
 	USER_PROMPT = "Here is the structured profile data in JSON format:\n %s \n\nPlease generate a professional and concise bio summary based on this data."
 )
+
+var promptBaseMap = map[string]string{
+	"kz": SYSTEM_PROMPT_KZ,
+	"de": SYSTEM_PROMPT_DE,
+	"en": SYSTEM_PROMPT_EN,
+}
+
+// generates system and user prompts based on the personal data
+func (s *Summarizer) getPromptBase(pd *model.PersonalData) (string, string, error) {
+	systemPrompt, ok := promptBaseMap[s.lang]
+	if !ok {
+		slog.Warn("unsupported language, defaulting to English prompt", slog.String("lang", s.lang))
+		systemPrompt = SYSTEM_PROMPT_EN
+	}
+
+	dataJSON, err := json.MarshalIndent(pd, "", "  ")
+	if err != nil {
+		return "", "", fmt.Errorf("failed to marshal personal data: %w", err)
+	}
+
+	userPrompt := fmt.Sprintf(USER_PROMPT, string(dataJSON))
+
+	return systemPrompt, userPrompt, nil
+}

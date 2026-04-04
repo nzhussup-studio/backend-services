@@ -2,14 +2,6 @@ package model
 
 import "time"
 
-type PersonalData struct {
-	WorkExperience []*WorkExperience `json:"work_experience"`
-	Education      []*Education      `json:"education"`
-	Projects       []*Project        `json:"projects"`
-	Skills         []*Skill          `json:"skills"`
-	Certificates   []*Certificate    `json:"certificates"`
-}
-
 type WorkExperience struct {
 	ID           int    `json:"id"`
 	Company      string `json:"company"`
@@ -54,16 +46,4 @@ type Certificate struct {
 	Name         string `json:"name"`
 	URL          string `json:"url"`
 	DisplayOrder int    `json:"displayOrder"`
-}
-
-type SummarizerAPIResponse struct {
-	Choices []Choice `json:"choices"`
-}
-
-type Choice struct {
-	Message Message `json:"message"`
-}
-
-type Message struct {
-	Content string `json:"content"`
 }

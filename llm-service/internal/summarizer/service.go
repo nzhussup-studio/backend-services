@@ -5,12 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"llm-service/internal/cache"
 	"llm-service/internal/model"
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -20,12 +18,6 @@ var cacheKeys = map[string]string{
 	"kz": "summary_kz",
 	"de": "summary_de",
 	"en": "summary_en",
-}
-
-var promptBaseMap = map[string]string{
-	"kz": SYSTEM_PROMPT_KZ,
-	"de": SYSTEM_PROMPT_DE,
-	"en": SYSTEM_PROMPT_EN,
 }
 
 var (
@@ -201,39 +193,6 @@ func (s *Summarizer) checkDataUnchanged(ctx context.Context, currentData *model.
 	return false // Data changed
 }
 
-// sends a request to the summarizer API with the given payload and headers and returns the response
-func (s *Summarizer) doLLMRequest(ctx context.Context, payload map[string]interface{}, headers map[string]string) (*model.SummarizerAPIResponse, error) {
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal payload: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", s.API_URL, io.NopCloser(bytes.NewReader(payloadBytes)))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	for k, v := range headers {
-		req.Header.Set(k, v)
-	}
-
-	resp, err := s.Client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make request to summarizer API: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("summarizer API error: %s", string(bodyBytes))
-	}
-
-	result := &model.SummarizerAPIResponse{}
-	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
-		return nil, fmt.Errorf("failed to decode summarizer response: %w", err)
-	}
-	return result, nil
-}
-
 func (s *Summarizer) flushAllSummaryCache() {
 	if err := s.redis.Del("summary_en"); err != nil {
 		slog.Error("error deleting summary cache for English", slog.Any("error", err))
@@ -253,78 +212,4 @@ func (s *Summarizer) getCacheKey() string {
 	}
 	slog.Warn("unsupported language, defaulting to English", slog.String("lang", s.lang))
 	return "summary_en"
-}
-
-// fetches all personal data from the configured endpoints
-func (s *Summarizer) fetchAllData() (*model.PersonalData, error) {
-	pd := &model.PersonalData{}
-
-	for _, endpoint := range s.DATA_URLS {
-		keysSlice := strings.Split(endpoint, "/")
-		if len(keysSlice) == 0 {
-			return nil, fmt.Errorf("invalid endpoint format: %s", endpoint)
-		}
-		key := keysSlice[len(keysSlice)-1]
-
-		resp, err := http.Get(endpoint)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get %s data: %w", key, err)
-		}
-		defer resp.Body.Close()
-
-		bodyBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read response body for %s: %w", key, err)
-		}
-
-		switch key {
-		case "work-experience":
-			if err := json.Unmarshal(bodyBytes, &pd.WorkExperience); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal work-experience: %w", err)
-			}
-
-		case "education":
-			if err := json.Unmarshal(bodyBytes, &pd.Education); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal education: %w", err)
-			}
-
-		case "project":
-			if err := json.Unmarshal(bodyBytes, &pd.Projects); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal projects: %w", err)
-			}
-
-		case "skill":
-			if err := json.Unmarshal(bodyBytes, &pd.Skills); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal skills: %w", err)
-			}
-
-		case "certificate":
-			if err := json.Unmarshal(bodyBytes, &pd.Certificates); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal certificates: %w", err)
-			}
-
-		default:
-			return nil, fmt.Errorf("unknown key: %s", key)
-		}
-	}
-
-	return pd, nil
-}
-
-// generates system and user prompts based on the personal data
-func (s *Summarizer) getPromptBase(pd *model.PersonalData) (string, string, error) {
-	systemPrompt, ok := promptBaseMap[s.lang]
-	if !ok {
-		slog.Warn("unsupported language, defaulting to English prompt", slog.String("lang", s.lang))
-		systemPrompt = SYSTEM_PROMPT_EN
-	}
-
-	dataJSON, err := json.MarshalIndent(pd, "", "  ")
-	if err != nil {
-		return "", "", fmt.Errorf("failed to marshal personal data: %w", err)
-	}
-
-	userPrompt := fmt.Sprintf(USER_PROMPT, string(dataJSON))
-
-	return systemPrompt, userPrompt, nil
 }
