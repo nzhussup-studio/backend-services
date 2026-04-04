@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultModelID        = "tngtech/deepseek-r1t2-chimera:free"
+	defaultModelID        = "nvidia/nemotron-3-super-120b-a12b:free"
 	maxPromptChars        = 8000
 	runtimeConfigCacheKey = "llm_runtime_config"
 )
