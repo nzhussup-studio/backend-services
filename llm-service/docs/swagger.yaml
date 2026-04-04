@@ -1,3 +1,13 @@
+definitions:
+  dto.APIResponse:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
 host: localhost:8086
 info:
   contact:
@@ -10,7 +20,7 @@ info:
   title: Summarizer Service API
   version: 1.0.0
 paths:
-  /v1/health:
+  /v1/llm/health:
     get:
       description: Checks the connectivity and health of dependent services, particularly
         Redis.
@@ -20,15 +30,11 @@ paths:
         "200":
           description: Status OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.APIResponse'
         "500":
           description: Redis connection failed
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.APIResponse'
       summary: Health check endpoint
       tags:
       - health
@@ -49,13 +55,15 @@ paths:
         "200":
           description: Generated professional summary
           schema:
-            type: string
+            $ref: '#/definitions/dto.APIResponse'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/dto.APIResponse'
         "500":
           description: Internal server error with error details
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.APIResponse'
       summary: Generate professional profile summary
       tags:
       - summarizer

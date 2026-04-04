@@ -11,7 +11,7 @@ info:
   title: Summarizer Service API
   version: 1.0.0
 paths:
-  "/v1/health":
+  "/v1/llm/health":
     get:
       description: Checks the connectivity and health of dependent services, particularly
         Redis.
@@ -21,17 +21,13 @@ paths:
           content:
             application/json:
               schema:
-                additionalProperties:
-                  type: string
-                type: object
+                "$ref": "#/components/schemas/dto.APIResponse"
         '500':
           description: Redis connection failed
           content:
             application/json:
               schema:
-                additionalProperties:
-                  type: string
-                type: object
+                "$ref": "#/components/schemas/dto.APIResponse"
       summary: Health check endpoint
       tags:
       - health
@@ -46,15 +42,19 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                "$ref": "#/components/schemas/dto.APIResponse"
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/dto.APIResponse"
         '500':
           description: Internal server error with error details
           content:
             application/json:
               schema:
-                additionalProperties:
-                  type: string
-                type: object
+                "$ref": "#/components/schemas/dto.APIResponse"
       summary: Generate professional profile summary
       tags:
       - summarizer
@@ -66,6 +66,16 @@ paths:
         schema:
           type: string
 components:
+  schemas:
+    dto.APIResponse:
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        status:
+          type: integer
+      type: object
   securitySchemes:
     ApiKeyAuth:
       in: header
