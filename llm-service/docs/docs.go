@@ -176,7 +176,7 @@ const docTemplate = `{
                 "system_prompt_en": {
                     "type": "string"
                 },
-                "system_prompt_kz": {
+                "system_prompt_kk": {
                     "type": "string"
                 }
             }
@@ -199,7 +199,7 @@ const docTemplate = `{
                 "system_prompt_en": {
                     "type": "string"
                 },
-                "system_prompt_kz": {
+                "system_prompt_kk": {
                     "type": "string"
                 }
             }

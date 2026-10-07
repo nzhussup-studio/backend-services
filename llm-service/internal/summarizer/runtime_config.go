@@ -19,7 +19,7 @@ type RuntimeConfig struct {
 	Model                    string
 	SystemPromptEN           string
 	SystemPromptDE           string
-	SystemPromptKZ           string
+	SystemPromptKK           string
 	EnableParallelGeneration bool
 }
 
@@ -27,7 +27,7 @@ type RuntimeConfigUpdate struct {
 	Model                    *string
 	SystemPromptEN           *string
 	SystemPromptDE           *string
-	SystemPromptKZ           *string
+	SystemPromptKK           *string
 	EnableParallelGeneration *bool
 }
 
@@ -39,7 +39,7 @@ var runtimeConfig = struct {
 		Model:                    defaultModelID,
 		SystemPromptEN:           SYSTEM_PROMPT_EN,
 		SystemPromptDE:           SYSTEM_PROMPT_DE,
-		SystemPromptKZ:           SYSTEM_PROMPT_KZ,
+		SystemPromptKK:           SYSTEM_PROMPT_KK,
 		EnableParallelGeneration: true,
 	},
 }
@@ -75,7 +75,7 @@ func InitRuntimeConfigStore(store cache.Cacher) error {
 	if strings.TrimSpace(persisted.Model) == "" &&
 		strings.TrimSpace(persisted.SystemPromptEN) == "" &&
 		strings.TrimSpace(persisted.SystemPromptDE) == "" &&
-		strings.TrimSpace(persisted.SystemPromptKZ) == "" {
+		strings.TrimSpace(persisted.SystemPromptKK) == "" {
 		return nil
 	}
 
@@ -92,8 +92,8 @@ func InitRuntimeConfigStore(store cache.Cacher) error {
 	if strings.TrimSpace(persisted.SystemPromptDE) != "" {
 		cfg.SystemPromptDE = strings.TrimSpace(persisted.SystemPromptDE)
 	}
-	if strings.TrimSpace(persisted.SystemPromptKZ) != "" {
-		cfg.SystemPromptKZ = strings.TrimSpace(persisted.SystemPromptKZ)
+	if strings.TrimSpace(persisted.SystemPromptKK) != "" {
+		cfg.SystemPromptKK = strings.TrimSpace(persisted.SystemPromptKK)
 	}
 	cfg.EnableParallelGeneration = persisted.EnableParallelGeneration
 
@@ -105,7 +105,7 @@ func UpdateRuntimeConfig(update RuntimeConfigUpdate) error {
 	if update.Model == nil &&
 		update.SystemPromptEN == nil &&
 		update.SystemPromptDE == nil &&
-		update.SystemPromptKZ == nil &&
+		update.SystemPromptKK == nil &&
 		update.EnableParallelGeneration == nil {
 		return fmt.Errorf("at least one configuration field must be provided")
 	}
@@ -140,14 +140,14 @@ func UpdateRuntimeConfig(update RuntimeConfigUpdate) error {
 		}
 	}
 
-	var promptKZ string
-	if update.SystemPromptKZ != nil {
-		promptKZ = strings.TrimSpace(*update.SystemPromptKZ)
-		if promptKZ == "" {
-			return fmt.Errorf("system_prompt_kz cannot be empty")
+	var promptKK string
+	if update.SystemPromptKK != nil {
+		promptKK = strings.TrimSpace(*update.SystemPromptKK)
+		if promptKK == "" {
+			return fmt.Errorf("system_prompt_kk cannot be empty")
 		}
-		if len(promptKZ) > maxPromptChars {
-			return fmt.Errorf("system_prompt_kz exceeds %d characters", maxPromptChars)
+		if len(promptKK) > maxPromptChars {
+			return fmt.Errorf("system_prompt_kk exceeds %d characters", maxPromptChars)
 		}
 	}
 
@@ -165,8 +165,8 @@ func UpdateRuntimeConfig(update RuntimeConfigUpdate) error {
 		runtimeConfig.cfg.SystemPromptDE = promptDE
 	}
 
-	if update.SystemPromptKZ != nil {
-		runtimeConfig.cfg.SystemPromptKZ = promptKZ
+	if update.SystemPromptKK != nil {
+		runtimeConfig.cfg.SystemPromptKK = promptKK
 	}
 
 	if update.EnableParallelGeneration != nil {

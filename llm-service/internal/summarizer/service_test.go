@@ -176,7 +176,7 @@ func TestSummarizer_Summarize_Multilingual_Failures(t *testing.T) {
 		},
 		{
 			name:       "LLM response is empty",
-			lang:       "kz",
+			lang:       "kk",
 			data:       data,
 			llmContent: "",
 			expectErr:  true,
@@ -202,7 +202,7 @@ func TestSummarizer_Summarize_Multilingual_Failures(t *testing.T) {
 		},
 		{
 			name: "Cache set fails silently",
-			lang: "kz",
+			lang: "kk",
 			data: data,
 			setup: func(redis *mockRedis) {
 				redis.setFunc = func(key string, value any) error {
@@ -275,7 +275,7 @@ func TestSummarizer_Summarize_SuccessCases(t *testing.T) {
 		},
 		{
 			name:             "Generate new summary in Kazakh",
-			lang:             "kz",
+			lang:             "kk",
 			data:             data,
 			llmContent:       "Нұржанат Жүсіп — Google компаниясында тәжірибесі бар бағдарламашы.",
 			expectedContains: "Нұржанат",

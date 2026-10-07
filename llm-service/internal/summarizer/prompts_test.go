@@ -15,12 +15,12 @@ func TestPrompts_getPromptBase(t *testing.T) {
 
 	customEN := "Custom EN Prompt"
 	customDE := "Custom DE Prompt"
-	customKZ := "Custom KZ Prompt"
+	customKK := "Custom KK Prompt"
 
 	require.NoError(t, UpdateRuntimeConfig(RuntimeConfigUpdate{
 		SystemPromptEN: &customEN,
 		SystemPromptDE: &customDE,
-		SystemPromptKZ: &customKZ,
+		SystemPromptKK: &customKK,
 	}))
 
 	pd := &model.PersonalData{}

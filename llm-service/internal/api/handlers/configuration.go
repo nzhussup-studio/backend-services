@@ -22,7 +22,7 @@ func (h *Handler) GetConfiguration(ctx *gin.Context) {
 		Model:                    cfg.Model,
 		SystemPromptEN:           cfg.SystemPromptEN,
 		SystemPromptDE:           cfg.SystemPromptDE,
-		SystemPromptKZ:           cfg.SystemPromptKZ,
+		SystemPromptKK:           cfg.SystemPromptKK,
 		EnableParallelGeneration: cfg.EnableParallelGeneration,
 	})
 }
@@ -52,7 +52,7 @@ func (h *Handler) PutConfiguration(ctx *gin.Context) {
 		Model:                    req.Model,
 		SystemPromptEN:           req.SystemPromptEN,
 		SystemPromptDE:           req.SystemPromptDE,
-		SystemPromptKZ:           req.SystemPromptKZ,
+		SystemPromptKK:           req.SystemPromptKK,
 		EnableParallelGeneration: req.EnableParallelGeneration,
 	}
 
@@ -71,7 +71,7 @@ func (h *Handler) PutConfiguration(ctx *gin.Context) {
 		Model:                    cfg.Model,
 		SystemPromptEN:           cfg.SystemPromptEN,
 		SystemPromptDE:           cfg.SystemPromptDE,
-		SystemPromptKZ:           cfg.SystemPromptKZ,
+		SystemPromptKK:           cfg.SystemPromptKK,
 		EnableParallelGeneration: cfg.EnableParallelGeneration,
 	})
 }

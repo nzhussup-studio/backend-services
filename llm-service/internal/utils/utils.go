@@ -5,7 +5,7 @@ import "time"
 func IsValidLanguage(lang string) bool {
 	validLanguages := map[string]bool{
 		"en": true,
-		"kz": true,
+		"kk": true,
 		"de": true,
 	}
 

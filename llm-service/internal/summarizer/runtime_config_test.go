@@ -14,7 +14,7 @@ func restoreRuntimeConfig(t *testing.T, cfg RuntimeConfig) {
 		Model:                    strPtr(cfg.Model),
 		SystemPromptEN:           strPtr(cfg.SystemPromptEN),
 		SystemPromptDE:           strPtr(cfg.SystemPromptDE),
-		SystemPromptKZ:           strPtr(cfg.SystemPromptKZ),
+		SystemPromptKK:           strPtr(cfg.SystemPromptKK),
 		EnableParallelGeneration: boolPtr(cfg.EnableParallelGeneration),
 	})
 	if err != nil {
@@ -29,14 +29,14 @@ func TestRuntimeConfig_UpdateSuccess(t *testing.T) {
 	model := "openai/gpt-4.1-mini"
 	promptEN := "EN prompt override"
 	promptDE := "DE prompt override"
-	promptKZ := "KZ prompt override"
+	promptKK := "KK prompt override"
 	parallel := false
 
 	err := UpdateRuntimeConfig(RuntimeConfigUpdate{
 		Model:                    &model,
 		SystemPromptEN:           &promptEN,
 		SystemPromptDE:           &promptDE,
-		SystemPromptKZ:           &promptKZ,
+		SystemPromptKK:           &promptKK,
 		EnableParallelGeneration: &parallel,
 	})
 	if err != nil {
@@ -47,7 +47,7 @@ func TestRuntimeConfig_UpdateSuccess(t *testing.T) {
 	if cfg.Model != model {
 		t.Fatalf("expected model %q, got %q", model, cfg.Model)
 	}
-	if cfg.SystemPromptEN != promptEN || cfg.SystemPromptDE != promptDE || cfg.SystemPromptKZ != promptKZ {
+	if cfg.SystemPromptEN != promptEN || cfg.SystemPromptDE != promptDE || cfg.SystemPromptKK != promptKK {
 		t.Fatalf("prompt overrides were not applied")
 	}
 	if cfg.EnableParallelGeneration != parallel {

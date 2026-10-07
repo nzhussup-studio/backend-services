@@ -52,7 +52,7 @@ func TestGetSummarizer_Success(t *testing.T) {
 			Model:                    &original.Model,
 			SystemPromptEN:           &original.SystemPromptEN,
 			SystemPromptDE:           &original.SystemPromptDE,
-			SystemPromptKZ:           &original.SystemPromptKZ,
+			SystemPromptKK:           &original.SystemPromptKK,
 			EnableParallelGeneration: &original.EnableParallelGeneration,
 		})
 	}()

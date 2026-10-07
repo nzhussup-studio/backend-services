@@ -30,7 +30,7 @@ Die Zusammenfassung sollte:
 - Im Klartextformat (kein Markdown) sein
 - Die Zusammenfassung auf Deutsch bereitstellen
 `
-	SYSTEM_PROMPT_KZ = `Сіз — Нұржанат Жүсіп есімді ер адам бағдарламалық қамтамасыз ету инженері туралы профильді қысқаша сипаттайтын көмекші көмекшісіз.  
+	SYSTEM_PROMPT_KK = `Сіз — Нұржанат Жүсіп есімді ер адам бағдарламалық қамтамасыз ету инженері туралы профильді қысқаша сипаттайтын көмекші көмекшісіз.  
 Қысқаша мазмұн мыналарды қамтуы керек:  
 - Соңғы рөлдер, жобалар, дағдылар мен жетістіктерден басталу  
 - Бұрынғы тәжірибелерді қысқаша түрде атап өту  
@@ -54,8 +54,8 @@ func (s *Summarizer) getPromptBase(pd *model.PersonalData) (string, string, erro
 		systemPrompt = cfg.SystemPromptEN
 	case "de":
 		systemPrompt = cfg.SystemPromptDE
-	case "kz":
-		systemPrompt = cfg.SystemPromptKZ
+	case "kk":
+		systemPrompt = cfg.SystemPromptKK
 	default:
 		slog.Warn("unsupported language, defaulting to English prompt", slog.String("lang", s.lang))
 	}

@@ -15,7 +15,7 @@ import (
 const wrapper = "%w: %v"
 
 var cacheKeys = map[string]string{
-	"kz": "summary_kz",
+	"kk": "summary_kk",
 	"de": "summary_de",
 	"en": "summary_en",
 }
@@ -89,7 +89,7 @@ func (s *Summarizer) Summarize(ctx context.Context) (string, error) {
 
 // backgroundSummarizeOthers generates summaries for languages other than s.lang, caches them
 func (s *Summarizer) backgroundSummarizeOthers(ctx context.Context, pd *model.PersonalData) {
-	langs := []string{"en", "kz", "de"}
+	langs := []string{"en", "kk", "de"}
 
 	for _, lang := range langs {
 		if lang == s.lang {
@@ -199,7 +199,7 @@ func (s *Summarizer) flushAllSummaryCache() {
 	if err := s.redis.Del("summary_en"); err != nil {
 		slog.Error("error deleting summary cache for English", slog.Any("error", err))
 	}
-	if err := s.redis.Del("summary_kz"); err != nil {
+	if err := s.redis.Del("summary_kk"); err != nil {
 		slog.Error("error deleting summary cache for Kazakh", slog.Any("error", err))
 	}
 	if err := s.redis.Del("summary_de"); err != nil {

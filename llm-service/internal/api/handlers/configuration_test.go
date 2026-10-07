@@ -35,7 +35,7 @@ func restoreConfig(t *testing.T, cfg summarizer.RuntimeConfig) {
 		Model:                    str(cfg.Model),
 		SystemPromptEN:           str(cfg.SystemPromptEN),
 		SystemPromptDE:           str(cfg.SystemPromptDE),
-		SystemPromptKZ:           str(cfg.SystemPromptKZ),
+		SystemPromptKK:           str(cfg.SystemPromptKK),
 		EnableParallelGeneration: b(cfg.EnableParallelGeneration),
 	})
 	if err != nil {
