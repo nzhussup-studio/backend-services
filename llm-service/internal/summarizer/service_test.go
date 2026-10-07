@@ -188,7 +188,7 @@ func TestSummarizer_Summarize_Multilingual_Failures(t *testing.T) {
 			data:           data,
 			expectErr:      true,
 			overrideAPIURL: true,
-			errMatch:       "failed to fetch personal data: failed to unmarshal work-experience: invalid character 'p' after top-level value",
+			errMatch:       "failed to fetch personal data: work-experience service returned HTTP 404 instead of JSON",
 		},
 		{
 			name: "Cache get returns invalid data",

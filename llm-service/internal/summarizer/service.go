@@ -55,7 +55,7 @@ func NewSummarizer(apiKey, apiURL string, dataURLS []string, client *http.Client
 
 // Summarize fetches personal data from configured endpoints, generates prompts, and requests a summary from the LLM API
 func (s *Summarizer) Summarize(ctx context.Context) (string, error) {
-	pd, err := s.fetchAllData()
+	pd, err := s.fetchAllData(ctx)
 	if err != nil {
 		return "", fmt.Errorf(wrapper, ErrFailedToFetchPersonalData, err)
 	}

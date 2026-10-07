@@ -45,8 +45,12 @@ func (s *Summarizer) doLLMRequest(ctx context.Context, payload map[string]interf
 }
 
 // fetches all personal data from the configured endpoints
-func (s *Summarizer) fetchAllData() (*model.PersonalData, error) {
+func (s *Summarizer) fetchAllData(ctx context.Context) (*model.PersonalData, error) {
 	pd := &model.PersonalData{}
+	client := s.Client
+	if client == nil {
+		client = http.DefaultClient
+	}
 
 	for _, endpoint := range s.DATA_URLS {
 		keysSlice := strings.Split(endpoint, "/")
@@ -55,15 +59,30 @@ func (s *Summarizer) fetchAllData() (*model.PersonalData, error) {
 		}
 		key := keysSlice[len(keysSlice)-1]
 
-		resp, err := http.Get(endpoint)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create %s request: %w", key, err)
+		}
+		req.Header.Set("Accept", "application/json")
+
+		resp, err := client.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get %s data: %w", key, err)
 		}
-		defer resp.Body.Close()
 
 		bodyBytes, err := io.ReadAll(resp.Body)
+		closeErr := resp.Body.Close()
 		if err != nil {
 			return nil, fmt.Errorf("failed to read response body for %s: %w", key, err)
+		}
+		if closeErr != nil {
+			return nil, fmt.Errorf("failed to close response body for %s: %w", key, closeErr)
+		}
+		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+			return nil, fmt.Errorf("%s service returned HTTP %d instead of JSON", key, resp.StatusCode)
+		}
+		if strings.HasPrefix(strings.TrimSpace(string(bodyBytes)), "<") {
+			return nil, fmt.Errorf("%s service returned HTML instead of JSON", key)
 		}
 
 		switch key {

@@ -107,7 +107,7 @@ func TestClient_fetchAllData(t *testing.T) {
 			},
 		}
 
-		pd, err := s.fetchAllData()
+		pd, err := s.fetchAllData(context.Background())
 		require.NoError(t, err)
 		require.NotNil(t, pd)
 		require.Len(t, pd.WorkExperience, 1)
@@ -123,7 +123,7 @@ func TestClient_fetchAllData(t *testing.T) {
 		s := &Summarizer{
 			DATA_URLS: []string{srv.URL + "/unknown"},
 		}
-		_, err := s.fetchAllData()
+		_, err := s.fetchAllData(context.Background())
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unknown key")
 	})
@@ -142,8 +142,31 @@ func TestClient_fetchAllData(t *testing.T) {
 			DATA_URLS: []string{srv.URL + "/work-experience"},
 		}
 
-		_, err := s.fetchAllData()
+		_, err := s.fetchAllData(context.Background())
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to unmarshal work-experience")
+	})
+
+	t.Run("reports an upstream HTTP error before decoding", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, "bad gateway", http.StatusBadGateway)
+		}))
+		defer srv.Close()
+
+		s := &Summarizer{Client: srv.Client(), DATA_URLS: []string{srv.URL + "/work-experience"}}
+		_, err := s.fetchAllData(context.Background())
+		require.EqualError(t, err, "work-experience service returned HTTP 502 instead of JSON")
+	})
+
+	t.Run("reports an HTML response clearly", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			_, _ = w.Write([]byte("<html>not the API</html>"))
+		}))
+		defer srv.Close()
+
+		s := &Summarizer{Client: srv.Client(), DATA_URLS: []string{srv.URL + "/work-experience"}}
+		_, err := s.fetchAllData(context.Background())
+		require.EqualError(t, err, "work-experience service returned HTML instead of JSON")
 	})
 }
