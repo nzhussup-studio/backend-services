@@ -19,7 +19,7 @@ Reverse proxy for backend services; serves API and docs.
 - CORS + preflight handled; methods other than GET/POST/PUT/PATCH/DELETE/OPTIONS return 405.
 - Security headers: HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy; CSP for `/docs`.
 - Limits: `limit_req_zone 20r/s` (burst 40, nodelay), `limit_conn` per IP 40, both return 429.
-- Timeouts: connect 5s; send/read 30s; `client_max_body_size 50m`; header buffers tuned for uploads.
+- Timeouts: connect 5s; upload API send/read 10m; `client_max_body_size 200m`; header buffers tuned for uploads.
 
 ## Local dev
 ```

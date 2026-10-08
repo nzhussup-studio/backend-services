@@ -27,6 +27,7 @@ func (a *app) GetRouter() *gin.Engine {
 	v1.DELETE("/:id", a.Controller.AlbumController.Delete)
 
 	v1.POST("/:id/upload", a.Controller.ImageController.Upload)
+	v1.GET("/:id/upload/:jobID", a.Controller.ImageController.UploadStatus)
 	v1.DELETE("/:id/:imageID", a.Controller.ImageController.Delete)
 	v1.PUT("/:id/:imageID", a.Controller.ImageController.Rename)
 	v1.GET("/:id/:imageID", a.Controller.ImageController.Serve)

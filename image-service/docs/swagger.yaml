@@ -94,6 +94,25 @@ definitions:
       status:
         type: integer
     type: object
+  service.UploadJob:
+    properties:
+      completed:
+        type: integer
+      createdAt:
+        type: string
+      error:
+        type: string
+      id:
+        type: string
+      images:
+        items:
+          $ref: '#/definitions/model.Image'
+        type: array
+      status:
+        type: string
+      total:
+        type: integer
+    type: object
 host: localhost:8085
 info:
   contact:
@@ -469,16 +488,14 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Image uploaded successfully
+        "202":
+          description: Upload accepted for background processing
           schema:
             allOf:
             - $ref: '#/definitions/model.SuccessResponse'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/model.Image'
-                  type: array
+                  $ref: '#/definitions/service.UploadJob'
               type: object
         "400":
           description: Bad Request
@@ -499,6 +516,41 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Upload image(s) to an album
+      tags:
+      - Image
+  /v1/album/{id}/upload/{jobID}:
+    get:
+      description: Returns progress and final result for a background image upload
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Upload job ID
+        in: path
+        name: jobID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.UploadJob'
+              type: object
+        "404":
+          description: Upload job not found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get upload job status
       tags:
       - Image
   /v1/album/cache:

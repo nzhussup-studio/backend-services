@@ -21,7 +21,7 @@ type ImageController struct {
 // @Produce json
 // @Param id path string true "Album ID"
 // @Param file formData []file true "Image file(s) to upload"
-// @Success 201 {object} model.SuccessResponse{data=[]model.Image} "Image uploaded successfully"
+// @Success 202 {object} model.SuccessResponse{data=service.UploadJob} "Upload accepted for background processing"
 // @Failure 400 {object} model.ErrorDetails "Bad Request"
 // @Failure 404 {object} model.ErrorDetails "Album Not Found"
 // @Failure 409 {object} model.ErrorDetails "Conflict"
@@ -43,6 +43,15 @@ func (ctrl *ImageController) Upload(c *gin.Context) {
 		return
 	}
 
+	if ctrl.service.AsyncImageService != nil {
+		job, err := ctrl.service.AsyncImageService.StartUpload(albumID, files)
+		if err != nil {
+			custom_errors.MapErrors(c, err)
+			return
+		}
+		customJson.ConstructJsonResponseSuccess(c, job, http.StatusAccepted, "Upload accepted for background processing")
+		return
+	}
 	savedImage, err := ctrl.service.ImageService.UploadImage(albumID, files)
 	if err != nil {
 		custom_errors.MapErrors(c, err)
@@ -66,6 +75,30 @@ func (ctrl *ImageController) Upload(c *gin.Context) {
 	// 	return
 	// }
 	// log.Printf("Message sent to Kafka: %s", message)
+}
+
+// UploadStatus godoc
+// @Summary Get upload job status
+// @Description Returns progress and final result for a background image upload
+// @Tags Image
+// @Produce json
+// @Param id path string true "Album ID"
+// @Param jobID path string true "Upload job ID"
+// @Success 200 {object} model.SuccessResponse{data=service.UploadJob}
+// @Failure 404 {object} model.ErrorResponse "Upload job not found"
+// @Router /v1/album/{id}/upload/{jobID} [get]
+// @Security ApiKeyAuth
+func (ctrl *ImageController) UploadStatus(c *gin.Context) {
+	if ctrl.service.AsyncImageService == nil {
+		custom_errors.MapErrors(c, custom_errors.NewError(custom_errors.ErrNotFound, "upload job not found"))
+		return
+	}
+	job, err := ctrl.service.AsyncImageService.GetUploadStatus(c.Param("id"), c.Param("jobID"))
+	if err != nil {
+		custom_errors.MapErrors(c, err)
+		return
+	}
+	customJson.ConstructJsonResponseSuccess(c, job, http.StatusOK)
 }
 
 // Delete godoc

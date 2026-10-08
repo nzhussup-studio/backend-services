@@ -419,8 +419,8 @@ paths:
     post:
       description: Upload one or more image files to the specified album
       responses:
-        '201':
-          description: Image uploaded successfully
+        '202':
+          description: Upload accepted for background processing
           content:
             application/json:
               schema:
@@ -428,9 +428,7 @@ paths:
                 - "$ref": "#/components/schemas/model.SuccessResponse"
                 - properties:
                     data:
-                      items:
-                        "$ref": "#/components/schemas/model.Image"
-                      type: array
+                      "$ref": "#/components/schemas/service.UploadJob"
                   type: object
         '400':
           description: Bad Request
@@ -483,6 +481,45 @@ paths:
                     format: binary
               required:
               - file
+  "/v1/album/{id}/upload/{jobID}":
+    get:
+      description: Returns progress and final result for a background image upload
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/service.UploadJob"
+                  type: object
+        '404':
+          description: Upload job not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+      security:
+      - ApiKeyAuth: []
+      summary: Get upload job status
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Upload job ID
+        in: path
+        name: jobID
+        required: true
+        schema:
+          type: string
   "/v1/album/cache":
     delete:
       description: This endpoint clears the server-side cache for images.
@@ -612,6 +649,25 @@ components:
         message:
           type: string
         status:
+          type: integer
+      type: object
+    service.UploadJob:
+      properties:
+        completed:
+          type: integer
+        createdAt:
+          type: string
+        error:
+          type: string
+        id:
+          type: string
+        images:
+          items:
+            "$ref": "#/components/schemas/model.Image"
+          type: array
+        status:
+          type: string
+        total:
           type: integer
       type: object
   securitySchemes:

@@ -29,6 +29,10 @@ type Service struct {
 		DeleteImage(string, string) error
 		ServeImage(string, string) (string, error)
 	}
+	AsyncImageService interface {
+		StartUpload(string, []*multipart.FileHeader) (*UploadJob, error)
+		GetUploadStatus(string, string) (*UploadJob, error)
+	}
 	CacheService interface {
 		ClearCache() error
 	}
@@ -38,11 +42,12 @@ type ImageConfig = appconfig.ImageConfig
 
 func NewService(storage *repository.Storage, redis *cache.RedisClient, securityConfig *auth.AuthConfig, validate *validator.Validate, imageCfg ImageConfig) *Service {
 	return &Service{
-		storage:      storage,
-		validate:     validate,
-		imageConfig:  imageCfg,
-		AlbumService: &AlbumService{storage: storage, redis: redis, securityConfig: securityConfig, validate: validate},
-		ImageService: &ImageService{storage: storage, redis: redis, validate: validate, cfg: imageCfg},
-		CacheService: &CacheService{redis: redis},
+		storage:           storage,
+		validate:          validate,
+		imageConfig:       imageCfg,
+		AlbumService:      &AlbumService{storage: storage, redis: redis, securityConfig: securityConfig, validate: validate},
+		ImageService:      &ImageService{storage: storage, redis: redis, validate: validate, cfg: imageCfg},
+		AsyncImageService: NewUploadJobService(storage, redis, validate, imageCfg),
+		CacheService:      &CacheService{redis: redis},
 	}
 }

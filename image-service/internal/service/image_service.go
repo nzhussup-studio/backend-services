@@ -25,19 +25,12 @@ type ImageService struct {
 }
 
 func (s *ImageService) UploadImage(albumID string, files []*multipart.FileHeader) ([]*model.Image, error) {
-	if len(files) == 0 {
-		return nil, custom_errors.NewError(custom_errors.ErrBadRequest, "no files uploaded")
-	}
+	return s.uploadImage(albumID, files, nil)
+}
 
-	var totalUploadBytes int64
-	for _, file := range files {
-		if file.Size > 0 && file.Size > s.cfg.MaxUploadBytes {
-			return nil, custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("image file too large: max %d MB", s.cfg.MaxUploadBytes/1024/1024))
-		}
-		totalUploadBytes += file.Size
-	}
-	if s.cfg.MaxTotalUploadBytes > 0 && totalUploadBytes > s.cfg.MaxTotalUploadBytes {
-		return nil, custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("total upload too large: max %d MB", s.cfg.MaxTotalUploadBytes/1024/1024))
+func (s *ImageService) uploadImage(albumID string, files []*multipart.FileHeader, progress func()) ([]*model.Image, error) {
+	if err := validateUpload(files, s.cfg); err != nil {
+		return nil, err
 	}
 
 	var (
@@ -114,6 +107,9 @@ func (s *ImageService) UploadImage(albumID string, files []*multipart.FileHeader
 			mu.Lock()
 			savedImages[index] = savedImage
 			mu.Unlock()
+			if progress != nil {
+				progress()
+			}
 		}(index, file)
 	}
 

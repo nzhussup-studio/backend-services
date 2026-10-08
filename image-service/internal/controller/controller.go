@@ -17,6 +17,7 @@ type Controller struct {
 	}
 	ImageController interface {
 		Upload(*gin.Context)
+		UploadStatus(*gin.Context)
 		Delete(*gin.Context)
 		Serve(*gin.Context)
 		Rename(*gin.Context)
