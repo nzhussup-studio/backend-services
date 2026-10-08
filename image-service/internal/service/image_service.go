@@ -24,6 +24,11 @@ type ImageService struct {
 	cfg      ImageConfig
 }
 
+type uploadInput struct {
+	contentType string
+	open        func() (io.ReadCloser, error)
+}
+
 func (s *ImageService) UploadImage(albumID string, files []*multipart.FileHeader) ([]*model.Image, error) {
 	return s.uploadImage(albumID, files, nil)
 }
@@ -33,11 +38,24 @@ func (s *ImageService) uploadImage(albumID string, files []*multipart.FileHeader
 		return nil, err
 	}
 
+	inputs := make([]uploadInput, len(files))
+	for index, file := range files {
+		inputs[index] = uploadInput{
+			contentType: file.Header.Get("Content-Type"),
+			open: func() (io.ReadCloser, error) {
+				return file.Open()
+			},
+		}
+	}
+	return s.uploadInputs(albumID, inputs, progress)
+}
+
+func (s *ImageService) uploadInputs(albumID string, inputs []uploadInput, progress func()) ([]*model.Image, error) {
 	var (
-		savedImages = make([]*model.Image, len(files))
+		savedImages = make([]*model.Image, len(inputs))
 		mu          sync.Mutex
 		wg          sync.WaitGroup
-		errChan     = make(chan error, len(files))
+		errChan     = make(chan error, len(inputs))
 	)
 	concurrency := s.cfg.MaxConcurrentUploads
 	if concurrency < 1 {
@@ -46,22 +64,21 @@ func (s *ImageService) uploadImage(albumID string, files []*multipart.FileHeader
 	semaphore := make(chan struct{}, concurrency)
 
 	// Pre-validate image types
-	for _, file := range files {
-		contentType := file.Header.Get("Content-Type")
-		imageType := model.ImageType(contentType)
+	for _, input := range inputs {
+		imageType := model.ImageType(input.contentType)
 		if _, ok := model.AllowedTypes[imageType]; !ok {
-			return nil, custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("invalid image type: %s. Only JPEG, PNG, and HEIC are allowed", contentType))
+			return nil, custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("invalid image type: %s. Only JPEG, PNG, and HEIC are allowed", input.contentType))
 		}
 	}
 
-	for index, file := range files {
+	for index, input := range inputs {
 		wg.Add(1)
-		go func(index int, file *multipart.FileHeader) {
+		go func(index int, input uploadInput) {
 			defer wg.Done()
 			semaphore <- struct{}{}
 			defer func() { <-semaphore }()
 
-			fileData, err := file.Open()
+			fileData, err := input.open()
 			if err != nil {
 				errChan <- custom_errors.NewError(custom_errors.ErrInternalServer, "failed to open image file")
 				return
@@ -69,7 +86,7 @@ func (s *ImageService) uploadImage(albumID string, files []*multipart.FileHeader
 			defer fileData.Close()
 
 			image := &model.Image{
-				Type: model.ImageType(file.Header.Get("Content-Type")),
+				Type: model.ImageType(input.contentType),
 			}
 
 			limitedReader := io.LimitReader(fileData, s.cfg.MaxUploadBytes+1)
@@ -110,7 +127,7 @@ func (s *ImageService) uploadImage(albumID string, files []*multipart.FileHeader
 			if progress != nil {
 				progress()
 			}
-		}(index, file)
+		}(index, input)
 	}
 
 	wg.Wait()
