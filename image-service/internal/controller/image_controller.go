@@ -20,7 +20,7 @@ type ImageController struct {
 // @Accept multipart/form-data
 // @Produce json
 // @Param id path string true "Album ID"
-// @Param file formData file true "Image file(s) to upload"
+// @Param file formData []file true "Image file(s) to upload"
 // @Success 201 {object} model.SuccessResponse{data=[]model.Image} "Image uploaded successfully"
 // @Failure 400 {object} model.ErrorDetails "Bad Request"
 // @Failure 404 {object} model.ErrorDetails "Album Not Found"

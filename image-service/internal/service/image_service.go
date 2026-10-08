@@ -25,12 +25,32 @@ type ImageService struct {
 }
 
 func (s *ImageService) UploadImage(albumID string, files []*multipart.FileHeader) ([]*model.Image, error) {
+	if len(files) == 0 {
+		return nil, custom_errors.NewError(custom_errors.ErrBadRequest, "no files uploaded")
+	}
+
+	var totalUploadBytes int64
+	for _, file := range files {
+		if file.Size > 0 && file.Size > s.cfg.MaxUploadBytes {
+			return nil, custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("image file too large: max %d MB", s.cfg.MaxUploadBytes/1024/1024))
+		}
+		totalUploadBytes += file.Size
+	}
+	if s.cfg.MaxTotalUploadBytes > 0 && totalUploadBytes > s.cfg.MaxTotalUploadBytes {
+		return nil, custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("total upload too large: max %d MB", s.cfg.MaxTotalUploadBytes/1024/1024))
+	}
+
 	var (
-		savedImages []*model.Image
+		savedImages = make([]*model.Image, len(files))
 		mu          sync.Mutex
 		wg          sync.WaitGroup
 		errChan     = make(chan error, len(files))
 	)
+	concurrency := s.cfg.MaxConcurrentUploads
+	if concurrency < 1 {
+		concurrency = 1
+	}
+	semaphore := make(chan struct{}, concurrency)
 
 	// Pre-validate image types
 	for _, file := range files {
@@ -41,15 +61,12 @@ func (s *ImageService) UploadImage(albumID string, files []*multipart.FileHeader
 		}
 	}
 
-	for _, file := range files {
+	for index, file := range files {
 		wg.Add(1)
-		go func(file *multipart.FileHeader) {
+		go func(index int, file *multipart.FileHeader) {
 			defer wg.Done()
-
-			if file.Size > 0 && file.Size > s.cfg.MaxUploadBytes {
-				errChan <- custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("image file too large: max %d MB", s.cfg.MaxUploadBytes/1024/1024))
-				return
-			}
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
 
 			fileData, err := file.Open()
 			if err != nil {
@@ -95,9 +112,9 @@ func (s *ImageService) UploadImage(albumID string, files []*multipart.FileHeader
 			s.redis.Set(cacheKey, cacheValue)
 
 			mu.Lock()
-			savedImages = append(savedImages, savedImage)
+			savedImages[index] = savedImage
 			mu.Unlock()
-		}(file)
+		}(index, file)
 	}
 
 	wg.Wait()

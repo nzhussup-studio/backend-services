@@ -455,7 +455,11 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "file",
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "csv",
                         "description": "Image file(s) to upload",
                         "name": "file",
                         "in": "formData",

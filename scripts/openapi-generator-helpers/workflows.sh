@@ -9,10 +9,13 @@ generate_service_openapi() {
   service_name="$(basename "$service_dir")"
 
   validate_service_dir "$service_dir"
+  echo "[openapi] Generating ${service_name} OpenAPI spec..."
 
   if [[ -f "${service_dir}/pom.xml" ]]; then
+    echo "[openapi] ${service_name}: detected Java service"
     generate_java_openapi "$service_dir" "$service_name"
   elif [[ -f "${service_dir}/go.mod" ]]; then
+    echo "[openapi] ${service_name}: detected Go service"
     generate_go_openapi "$service_dir" "$service_name"
   else
     fail "Unsupported service type. Expected pom.xml or go.mod in ${service_dir}."
@@ -24,11 +27,14 @@ generate_all_openapis() {
   local service
 
   manifest_file="$(require_manifest)"
+  echo "[openapi] Generating specs for services listed in ${manifest_file}..."
 
   while IFS= read -r service; do
     [[ -n "$service" ]] || continue
     generate_service_openapi "${REPO_ROOT}/${service}"
   done < <(read_manifest_services "$manifest_file")
 
+  echo "[openapi] Building unified OpenAPI spec..."
   build_unified_openapi "$manifest_file"
+  echo "[openapi] OpenAPI generation completed."
 }

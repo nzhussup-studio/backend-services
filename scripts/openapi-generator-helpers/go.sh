@@ -35,6 +35,7 @@ generate_go_openapi() {
   local main_name
   local swag_version
 
+  echo "[openapi] ${service_name}: preparing Go Swagger generation..."
   mkdir -p "$go_mod_cache" "$go_build_cache"
   main_file="$(find "${service_dir}/cmd" -name main.go -print | head -n 1)"
   [[ -n "$main_file" ]] || fail "Could not locate a Go entrypoint under ${service_dir}/cmd."
@@ -48,12 +49,14 @@ generate_go_openapi() {
     export GOMODCACHE="$go_mod_cache"
     export GOCACHE="$go_build_cache"
     if command -v swag >/dev/null 2>&1; then
+      echo "[openapi] ${service_name}: generating with installed swag..."
       swag init \
         --generalInfo "$main_name" \
         --dir "${main_dir_rel},internal" \
         --output docs \
         --outputTypes go,json,yaml
     else
+      echo "[openapi] ${service_name}: generating with swag ${swag_version}..."
       go run "github.com/swaggo/swag/cmd/swag@${swag_version}" init \
         --generalInfo "$main_name" \
         --dir "${main_dir_rel},internal" \
@@ -63,8 +66,9 @@ generate_go_openapi() {
   )
 
   [[ -f "${docs_dir}/swagger.yaml" ]] || fail "Go OpenAPI generation did not produce ${docs_dir}/swagger.yaml."
+  echo "[openapi] ${service_name}: sanitizing generated document..."
   cp "${docs_dir}/swagger.yaml" "$output_file"
   sanitize_yaml_spec "$output_file"
 
-  echo "Generated ${output_file}"
+  echo "[openapi] ${service_name}: generated ${output_file}"
 }

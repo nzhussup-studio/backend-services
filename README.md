@@ -74,6 +74,11 @@ Generate OpenAPI for all configured services and build a unified spec:
 ./scripts/generate-openapi.sh --all
 ```
 
+Java services must be generated with the JDK version declared in their `pom.xml`
+(currently JDK 21 for `base-service`). The generator selects a matching macOS JDK
+automatically when one is installed; otherwise set `JAVA_HOME` to that JDK before
+running the command.
+
 The `--all` flow reads the service list from `openapi-services.json`.
 
 ### Output

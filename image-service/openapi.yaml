@@ -476,9 +476,11 @@ paths:
               type: object
               properties:
                 file:
-                  type: string
-                  format: binary
+                  type: array
                   description: Image file(s) to upload
+                  items:
+                    type: string
+                    format: binary
               required:
               - file
   "/v1/album/cache":

@@ -11,6 +11,7 @@ import (
 
 func (a *app) GetRouter() *gin.Engine {
 	r := gin.Default()
+	r.MaxMultipartMemory = 8 << 20
 
 	r.Use(auth.AuthMiddleware(a.authCfg))
 

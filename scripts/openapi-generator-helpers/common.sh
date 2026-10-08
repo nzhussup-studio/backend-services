@@ -62,3 +62,32 @@ validate_service_dir() {
       ;;
   esac
 }
+
+configure_java_runtime() {
+  local service_dir="$1"
+  local expected_version
+  local current_version
+  local java_home
+
+  expected_version="$(sed -n 's:.*<java.version>[[:space:]]*\([0-9][0-9]*\)[[:space:]]*</java.version>.*:\1:p' "${service_dir}/pom.xml" | head -n 1)"
+  [[ -n "$expected_version" ]] || return 0
+
+  current_version="$(java -version 2>&1 | sed -n 's/.*version "\([0-9][0-9]*\).*/\1/p' | head -n 1)"
+  if [[ "$current_version" == "$expected_version" ]]; then
+    return 0
+  fi
+
+  if [[ "$(uname -s)" == "Darwin" ]] && command -v /usr/libexec/java_home >/dev/null 2>&1; then
+    java_home="$(/usr/libexec/java_home -v "$expected_version" 2>/dev/null || true)"
+    if [[ -n "$java_home" ]]; then
+      current_version="$("${java_home}/bin/java" -version 2>&1 | sed -n 's/.*version "\([0-9][0-9]*\).*/\1/p' | head -n 1)"
+      if [[ "$current_version" == "$expected_version" ]]; then
+        export JAVA_HOME="$java_home"
+        export PATH="${JAVA_HOME}/bin:${PATH}"
+        return 0
+      fi
+    fi
+  fi
+
+  fail "Java service '${service_dir##*/}' requires JDK ${expected_version}; found JDK ${current_version:-unknown}. Install JDK ${expected_version} or set JAVA_HOME before generating OpenAPI."
+}

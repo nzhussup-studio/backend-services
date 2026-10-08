@@ -458,11 +458,14 @@ paths:
         name: id
         required: true
         type: string
-      - description: Image file(s) to upload
+      - collectionFormat: csv
+        description: Image file(s) to upload
         in: formData
+        items:
+          type: file
         name: file
         required: true
-        type: file
+        type: array
       produces:
       - application/json
       responses:

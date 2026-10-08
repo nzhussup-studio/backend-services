@@ -55,10 +55,13 @@ generate_java_openapi() {
   local maven_repo_dir="${service_dir}/.openapi-cache/m2"
   local app_pid=""
 
+  configure_java_runtime "$service_dir"
+  echo "[openapi] ${service_name}: using Java ${JAVA_HOME:-$(java -version 2>&1 | sed -n 's/.*version "\([0-9][0-9]*\).*/\1/p' | head -n 1)}"
   docs_path="$(detect_java_docs_path "$service_dir")"
   port="$(pick_free_port)"
   log_file="$(mktemp -t "${service_name}.openapi")"
   mkdir -p "$maven_repo_dir"
+  echo "[openapi] ${service_name}: starting application on port ${port}..."
 
   trap 'cleanup_pid "$app_pid"' EXIT
 
@@ -83,6 +86,7 @@ generate_java_openapi() {
   local url="http://127.0.0.1:${port}${docs_path}"
   local attempts=0
   local max_attempts=120
+  echo "[openapi] ${service_name}: waiting for ${url}..."
 
   until curl -fsS "$url" -o "$output_file" >/dev/null 2>&1; do
     if ! kill -0 "$app_pid" 2>/dev/null; then
@@ -101,8 +105,9 @@ generate_java_openapi() {
 
   cleanup_pid "$app_pid"
   trap - EXIT
+  echo "[openapi] ${service_name}: downloaded OpenAPI document; sanitizing..."
   rm -f "$log_file"
   sanitize_yaml_spec "$output_file"
 
-  echo "Generated ${output_file}"
+  echo "[openapi] ${service_name}: generated ${output_file}"
 }
