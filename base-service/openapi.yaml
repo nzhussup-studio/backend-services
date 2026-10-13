@@ -430,6 +430,9 @@ components:
           type: string
         url:
           type: string
+        description:
+          type: string
+          readOnly: true
         techStack:
           type: string
         displayOrder:

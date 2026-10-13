@@ -1,5 +1,6 @@
 package com.nzhussup.baseservice.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,10 @@ public class Project implements Identifiable, Serializable {
 
     @Column(nullable = false)
     private String url;
+
+    @Transient
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String description;
 
     @Column(nullable = false)
     private String techStack;
