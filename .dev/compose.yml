@@ -162,8 +162,15 @@ services:
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       KEYCLOAK_BACKEND_CLIENT_ID: ${KEYCLOAK_BACKEND_CLIENT_ID:-backend-auth-client}
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}/protocol/openid-connect/certs
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8010/v1/base/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - backend-internal
 
@@ -175,7 +182,7 @@ services:
       keycloak-master-realm-init:
         condition: service_completed_successfully
       base-service:
-        condition: service_started
+        condition: service_healthy
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-personal_website_db}
       POSTGRES_USER: ${POSTGRES_USER:-nzhussup}
@@ -238,6 +245,12 @@ services:
       KEYCLOAK_JWK_SET_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}/protocol/openid-connect/certs
       PORT: 8087
       API_BASE_PATH: /v1/account
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--output-document=-", "http://127.0.0.1:8087/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
     networks:
       - backend-internal
 
@@ -247,13 +260,13 @@ services:
       dockerfile: Dockerfile
     depends_on:
       base-service:
-        condition: service_started
+        condition: service_healthy
       image-service:
         condition: service_started
       llm-service:
         condition: service_started
       account-service:
-        condition: service_started
+        condition: service_healthy
     environment:
       NGINX_GATEWAY_LISTEN_PORT: 8082
       NGINX_GATEWAY_BASE_UPSTREAM_HOST: base-service

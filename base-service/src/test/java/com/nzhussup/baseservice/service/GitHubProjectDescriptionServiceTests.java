@@ -19,7 +19,7 @@ class GitHubProjectDescriptionServiceTests {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         GitHubProjectDescriptionService service =
-                new GitHubProjectDescriptionService(builder, "");
+                new GitHubProjectDescriptionService(builder.baseUrl("https://api.github.com").build());
 
         server.expect(once(), requestTo("https://api.github.com/repos/example/project"))
                 .andExpect(method(HttpMethod.GET))
@@ -35,7 +35,7 @@ class GitHubProjectDescriptionServiceTests {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         GitHubProjectDescriptionService service =
-                new GitHubProjectDescriptionService(builder, "");
+                new GitHubProjectDescriptionService(builder.baseUrl("https://api.github.com").build());
 
         server.expect(once(), requestTo("https://api.github.com/repos/example/project"))
                 .andRespond(withSuccess("{\"description\":null}", MediaType.APPLICATION_JSON));
@@ -49,7 +49,7 @@ class GitHubProjectDescriptionServiceTests {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         GitHubProjectDescriptionService service =
-                new GitHubProjectDescriptionService(builder, "");
+                new GitHubProjectDescriptionService(builder.baseUrl("https://api.github.com").build());
 
         assertThat(service.getDescription("https://example.com/example/project")).isEmpty();
         server.verify();

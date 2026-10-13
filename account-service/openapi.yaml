@@ -11,19 +11,6 @@ info:
   title: Account Service API
   version: 1.0.0
 paths:
-  "/health":
-    get:
-      description: Returns 200 OK if the service is up
-      responses:
-        '200':
-          description: Service is healthy
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/model.SuccessResponse"
-      summary: Health check endpoint
-      tags:
-      - Health
   "/v1/account":
     delete:
       description: Logs out and deletes the current Keycloak user identified by the
@@ -64,6 +51,19 @@ paths:
       summary: Delete the currently authenticated account
       tags:
       - Account
+  "/v1/account/health":
+    get:
+      description: Returns 200 OK if the service is up
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.SuccessResponse"
+      summary: Health check endpoint
+      tags:
+      - Health
 components:
   schemas:
     model.ErrorResponse:

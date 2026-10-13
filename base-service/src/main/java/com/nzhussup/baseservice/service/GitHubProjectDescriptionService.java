@@ -3,13 +3,16 @@ package com.nzhussup.baseservice.service;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -21,11 +24,15 @@ public class GitHubProjectDescriptionService {
 
     private final RestClient restClient;
 
+    @Autowired
     public GitHubProjectDescriptionService(
             RestClient.Builder restClientBuilder,
             @Value("${app.github.token:}") String githubToken) {
         RestClient.Builder builder = restClientBuilder
                 .baseUrl("https://api.github.com")
+                .requestFactory(new JdkClientHttpRequestFactory(HttpClient.newBuilder()
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .build()))
                 .defaultHeader(HttpHeaders.ACCEPT, "application/vnd.github+json")
                 .defaultHeader("X-GitHub-Api-Version", GITHUB_API_VERSION);
 
@@ -34,6 +41,10 @@ public class GitHubProjectDescriptionService {
         }
 
         this.restClient = builder.build();
+    }
+
+    GitHubProjectDescriptionService(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     /**
