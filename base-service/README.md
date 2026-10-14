@@ -33,7 +33,4 @@ The service expects database and Redis settings plus Keycloak JWT configuration:
 - `SPRING_DATASOURCE_PASSWORD`
 - `SPRING_REDIS_HOST`
 - `SPRING_REDIS_PORT`
-- `KEYCLOAK_BACKEND_CLIENT_ID`
-- `KEYCLOAK_JWK_SET_URI`
-- `KEYCLOAK_EXPECTED_ISSUER` optional
-- `KEYCLOAK_EXPECTED_AUDIENCE` optional
+- Trusted identity is supplied by the API gateway through `X-User-*` headers.

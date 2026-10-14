@@ -88,6 +88,7 @@
       "implicitFlowEnabled": false,
       "fullScopeAllowed": true,
       "defaultClientScopes": [
+        "basic",
         "acr",
         "profile",
         "roles",
@@ -114,6 +115,7 @@
       "implicitFlowEnabled": false,
       "fullScopeAllowed": true,
       "defaultClientScopes": [
+        "basic",
         "web-origins",
         "acr",
         "profile",

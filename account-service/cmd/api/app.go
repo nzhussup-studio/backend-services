@@ -2,15 +2,13 @@ package main
 
 import (
 	"account-service/internal/controller"
-	"account-service/internal/security"
 	"account-service/internal/service"
 	"time"
 )
 
 type app struct {
-	config         config
-	securityConfig *security.AuthConfig
-	controller     *controller.AccountController
+	config     config
+	controller *controller.AccountController
 }
 
 type config struct {
@@ -26,14 +24,12 @@ type keycloakConfig struct {
 	adminRealm        string
 	adminClientID     string
 	adminClientSecret string
-	jwkSetURL         string
 	httpTimeout       time.Duration
 }
 
-func newApp(config config, securityConfig *security.AuthConfig, accountService *service.AccountService) *app {
+func newApp(config config, accountService *service.AccountService) *app {
 	return &app{
-		config:         config,
-		securityConfig: securityConfig,
-		controller:     controller.NewAccountController(accountService),
+		config:     config,
+		controller: controller.NewAccountController(accountService),
 	}
 }

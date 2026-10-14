@@ -1,0 +1,227 @@
+static_resources:
+  listeners:
+    - name: api_listener
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8082
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: local_api_gateway
+                use_remote_address: true
+                route_config:
+                  name: local_api_routes
+                  virtual_hosts:
+                    - name: api
+                      domains: ["*"]
+                      response_headers_to_add:
+                        - header: { key: x-content-type-options, value: nosniff }
+                          append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                        - header: { key: referrer-policy, value: no-referrer }
+                          append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                      typed_per_filter_config:
+                        envoy.filters.http.cors:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
+                          allow_origin_string_match:
+                            - exact: http://localhost:5173
+                            - exact: http://127.0.0.1:5173
+                            - exact: http://localhost:4173
+                            - exact: http://127.0.0.1:4173
+                          allow_methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+                          allow_headers: authorization,content-type,accept,origin,cache-control,x-requested-with
+                          allow_credentials: true
+                      routes:
+                        - match: { path: "/" }
+                          route:
+                            cluster: api_docs
+                            prefix_rewrite: /docs/
+                            timeout: 15s
+                        - match: { prefix: "/v1/base/health" }
+                          route: { cluster: base_service, timeout: 15s }
+                        - match: { prefix: "/v1/base/docs" }
+                          route: { cluster: base_service, timeout: 15s }
+                        - match: { prefix: "/v1/base/cv-generator-preference" }
+                          typed_per_filter_config: &require_jwt
+                            envoy.filters.http.jwt_authn:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                              requirement_name: valid_keycloak_token
+                          route: { cluster: base_service, timeout: 600s }
+                        - match:
+                            prefix: "/v1/base"
+                            headers: [{ name: ":method", string_match: { exact: "GET" } }]
+                          route: { cluster: base_service, timeout: 600s }
+                        - match: { prefix: "/v1/base" }
+                          typed_per_filter_config: *require_jwt
+                          route: { cluster: base_service, timeout: 600s }
+                        - match:
+                            prefix: "/v1/album"
+                            headers: [{ name: ":method", string_match: { exact: "GET" } }]
+                            query_parameters:
+                              - name: type
+                                string_match:
+                                  safe_regex: { regex: "^(all|private|semi-public)$" }
+                          typed_per_filter_config: *require_jwt
+                          route: { cluster: image_service, timeout: 600s }
+                        - match:
+                            prefix: "/v1/album"
+                            headers: [{ name: ":method", string_match: { exact: "GET" } }]
+                          route: { cluster: image_service, timeout: 600s }
+                        - match: { prefix: "/v1/album" }
+                          typed_per_filter_config: *require_jwt
+                          route: { cluster: image_service, timeout: 600s }
+                        - match:
+                            prefix: "/v1/llm/configuration"
+                          typed_per_filter_config: *require_jwt
+                          route: { cluster: llm_service, timeout: 600s }
+                        - match:
+                            prefix: "/v1/llm"
+                            headers: [{ name: ":method", string_match: { exact: "GET" } }]
+                          route: { cluster: llm_service, timeout: 600s }
+                        - match: { prefix: "/v1/llm" }
+                          typed_per_filter_config: *require_jwt
+                          route: { cluster: llm_service, timeout: 600s }
+                        - match: { prefix: "/v1/account/health" }
+                          route: { cluster: account_service, timeout: 15s }
+                        - match: { prefix: "/v1/account/docs" }
+                          route: { cluster: account_service, timeout: 15s }
+                        - match: { prefix: "/v1/account" }
+                          typed_per_filter_config: *require_jwt
+                          route: { cluster: account_service, timeout: 30s }
+                        - match: { prefix: "/docs" }
+                          route: { cluster: api_docs, timeout: 15s }
+                        - match: { prefix: "/" }
+                          direct_response:
+                            status: 404
+                            body: { inline_string: '{"error":{"status":404,"message":"Not found"}}' }
+                http_filters:
+                  - name: envoy.filters.http.cors
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+                  - name: envoy.filters.http.jwt_authn
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
+                      providers:
+                        keycloak:
+                          issuer: http://localhost:8081/realms/backend-auth-dev
+                          audiences: [backend-auth-client]
+                          forward: true
+                          remote_jwks:
+                            http_uri:
+                              uri: http://keycloak:8080/realms/backend-auth-dev/protocol/openid-connect/certs
+                              cluster: keycloak_jwks
+                              timeout: 5s
+                            cache_duration: 600s
+                          claim_to_headers:
+                            - { header_name: x-user-id, claim_name: sub }
+                            - { header_name: x-user-name, claim_name: preferred_username }
+                            - { header_name: x-user-email, claim_name: email }
+                            - { header_name: x-user-roles, claim_name: realm_access.roles }
+                      requirement_map:
+                        valid_keycloak_token:
+                          provider_name: keycloak
+                      rules:
+                        - match: { prefix: "/" }
+                          requires:
+                            requires_any:
+                              requirements:
+                                - provider_name: keycloak
+                                - allow_missing: {}
+                  - name: envoy.filters.http.local_ratelimit
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+                      stat_prefix: local_api_rate_limit
+                      token_bucket:
+                        max_tokens: 40
+                        tokens_per_fill: 20
+                        fill_interval: 1s
+                      filter_enabled:
+                        runtime_key: local_rate_limit_enabled
+                        default_value: { numerator: 100, denominator: HUNDRED }
+                      filter_enforced:
+                        runtime_key: local_rate_limit_enforced
+                        default_value: { numerator: 100, denominator: HUNDRED }
+                      response_headers_to_add:
+                        - append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                          header: { key: x-local-rate-limit, value: "true" }
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+    - name: keycloak_jwks
+      connect_timeout: 5s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: keycloak_jwks
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: { address: keycloak, port_value: 8080 }
+    - name: base_service
+      connect_timeout: 5s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: base_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: { address: base-service, port_value: 8010 }
+    - name: image_service
+      connect_timeout: 5s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: image_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: { address: image-service, port_value: 8085 }
+    - name: llm_service
+      connect_timeout: 5s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: llm_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: { address: llm-service, port_value: 8086 }
+    - name: account_service
+      connect_timeout: 5s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: account_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: { address: account-service, port_value: 8087 }
+    - name: api_docs
+      connect_timeout: 5s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: api_docs
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: { address: api-docs, port_value: 8080 }
+
+admin:
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 9901
+
+overload_manager:
+  refresh_interval: 0.25s
+  resource_monitors:
+    - name: envoy.resource_monitors.global_downstream_max_connections
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.resource_monitors.downstream_connections.v3.DownstreamConnectionsConfig
+        max_active_downstream_connections: 1000

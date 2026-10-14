@@ -47,7 +47,7 @@ type RedisConfig struct {
 }
 
 func NewConfigFromEnv() *Config {
-	nginxGatewayURL := env.GetString("NGINX_GATEWAY_URL", "http://localhost:8082")
+	baseServiceURL := env.GetString("BASE_SERVICE_URL", "http://localhost:8010")
 
 	return &Config{
 		App: AppConfig{
@@ -61,11 +61,11 @@ func NewConfigFromEnv() *Config {
 			Interval: 3 * time.Minute,
 		},
 		Services: ServicesConfig{
-			WorkExperienceURL: nginxGatewayURL + "/v1/base/work-experience",
-			EducationURL:      nginxGatewayURL + "/v1/base/education",
-			ProjectsURL:       nginxGatewayURL + "/v1/base/project",
-			SkillsURL:         nginxGatewayURL + "/v1/base/skill",
-			CertificatesURL:   nginxGatewayURL + "/v1/base/certificate",
+			WorkExperienceURL: baseServiceURL + "/v1/base/work-experience",
+			EducationURL:      baseServiceURL + "/v1/base/education",
+			ProjectsURL:       baseServiceURL + "/v1/base/project",
+			SkillsURL:         baseServiceURL + "/v1/base/skill",
+			CertificatesURL:   baseServiceURL + "/v1/base/certificate",
 		},
 		Summarizer: SummarizerConfig{
 			APIKey: env.GetString("OPENROUTER_API_KEY", ""),

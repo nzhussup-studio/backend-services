@@ -13,17 +13,18 @@ The compose stack includes:
 - `image-service`
 - `llm-service`
 - `account-service`
-- `nginx-gateway`
+- Envoy local API gateway
+- static API documentation server
 - `db-seed` one-shot seeding container
 
 Only these ports are exposed to the host:
 
-- `8082` for `nginx-gateway`
+- `8082` for the Envoy API gateway
 - `8081` for Keycloak
 - `5432` for PostgreSQL
 - `6379` for Redis
 
-The backend application services themselves are kept internal to the Compose network and are intended to be accessed through `nginx-gateway`.
+The backend application services themselves are kept internal to the Compose network and are intended to be accessed through Envoy.
 
 ## Start
 
@@ -34,6 +35,18 @@ docker compose -f backend-services/.dev/compose.yml up --build
 ```
 
 The stack works without a `.env` file because the compose file already defines defaults for all required variables.
+
+The local gateway validates its configuration on startup, routes public reads without a token, and requires a Keycloak JWT for protected routes. Run the read-only smoke checks with:
+
+```bash
+backend-services/.dev/smoke-gateway.sh
+```
+
+To test a gateway published on another port:
+
+```bash
+API_GATEWAY_URL=http://localhost:18082 backend-services/.dev/smoke-gateway.sh
+```
 
 ## Keycloak
 
@@ -84,7 +97,7 @@ Keycloak persists its state in a dedicated PostgreSQL database named `keycloak` 
 You can override values at runtime if needed:
 
 ```bash
-POSTGRES_PORT=5433 REDIS_PORT=6380 NGINX_GATEWAY_PORT=8088 docker compose -f backend-services/.dev/compose.yml up --build
+POSTGRES_PORT=5433 REDIS_PORT=6380 API_GATEWAY_PORT=8088 docker compose -f backend-services/.dev/compose.yml up --build
 ```
 
 If you want the LLM integration to work locally, provide an API key:

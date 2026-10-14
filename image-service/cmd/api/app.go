@@ -30,10 +30,6 @@ type app struct {
 
 func newApp(config *appconfig.Config) *app {
 	authCfg := &auth.AuthConfig{
-		JWKSetURL:        config.Security.JWKSetURL,
-		ExpectedIssuer:   config.Security.ExpectedIssuer,
-		ExpectedAudience: config.Security.ExpectedAudience,
-		BackendClientID:  config.Security.BackendClientID,
 		Rules: []auth.AuthRule{
 			{
 				Path: config.API.BasePath,

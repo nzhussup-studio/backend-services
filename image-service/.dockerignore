@@ -1,0 +1,6 @@
+.cache/
+.git/
+.env
+*.log
+coverage.out
+var/images/

@@ -6,7 +6,6 @@ import (
 
 	"account-service/internal/env"
 	"account-service/internal/keycloak"
-	"account-service/internal/security"
 	"account-service/internal/service"
 
 	_ "account-service/docs"
@@ -36,13 +35,8 @@ func main() {
 			adminRealm:        env.GetString("KEYCLOAK_ADMIN_REALM", "master"),
 			adminClientID:     env.GetString("KEYCLOAK_ADMIN_CLIENT_ID", "admin-cli"),
 			adminClientSecret: env.GetString("KEYCLOAK_ADMIN_CLIENT_SECRET", ""),
-			jwkSetURL:         env.GetString("KEYCLOAK_JWK_SET_URL", "http://localhost:8081/realms/backend-auth-dev/protocol/openid-connect/certs"),
 			httpTimeout:       10 * time.Second,
 		},
-	}
-
-	securityConfig := &security.AuthConfig{
-		JWKSetURL: cfg.keycloakConfig.jwkSetURL,
 	}
 
 	adminClient := keycloak.NewAdminClient(keycloak.AdminClientConfig{
@@ -55,6 +49,6 @@ func main() {
 	})
 
 	accountService := service.NewAccountService(adminClient)
-	app := newApp(cfg, securityConfig, accountService)
+	app := newApp(cfg, accountService)
 	app.Run()
 }

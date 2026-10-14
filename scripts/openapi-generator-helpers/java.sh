@@ -77,8 +77,6 @@ generate_java_openapi() {
     SPRING_DATASOURCE_PASSWORD=openapi \
     SPRING_REDIS_HOST=localhost \
     SPRING_REDIS_PORT=6379 \
-    KEYCLOAK_JWK_SET_URI=http://127.0.0.1:8081/realms/backend-auth-dev/protocol/openid-connect/certs \
-    KEYCLOAK_BACKEND_CLIENT_ID=backend-auth-client \
     ./mvnw -q -Dmaven.repo.local="$maven_repo_dir" -DskipTests spring-boot:run >"$log_file" 2>&1
   ) &
   app_pid=$!

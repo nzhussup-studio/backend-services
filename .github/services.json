@@ -33,11 +33,11 @@
       "image_name": "backend-account-service"
     },
     {
-      "name": "nginx-gateway",
-      "path": "nginx-gateway",
+      "name": "api-docs",
+      "path": "api-docs",
       "ci_mode": "build-deploy",
-      "deployment": "backend-nginx-gateway",
-      "image_name": "backend-nginx-gateway"
+      "deployment": "backend-api-docs",
+      "image_name": "backend-api-docs"
     },
     {
       "name": "keycloak-server",

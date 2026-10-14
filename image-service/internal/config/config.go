@@ -23,12 +23,6 @@ type Config struct {
 		DB       int
 		TTL      time.Duration
 	}
-	Security struct {
-		JWKSetURL        string
-		ExpectedIssuer   string
-		ExpectedAudience string
-		BackendClientID  string
-	}
 	Image ImageConfig
 }
 
@@ -64,15 +58,6 @@ func Load() *Config {
 	cfg.Redis.Password = env.GetString("REDIS_PASSWORD", "")
 	cfg.Redis.DB = env.GetInt("REDIS_DB", 0)
 	cfg.Redis.TTL = time.Duration(env.GetInt("REDIS_TTL_HOURS", 24)) * time.Hour
-
-	// Security
-	cfg.Security.JWKSetURL = env.GetString(
-		"KEYCLOAK_JWK_SET_URL",
-		"http://localhost:8081/realms/backend-auth-dev/protocol/openid-connect/certs",
-	)
-	cfg.Security.ExpectedIssuer = env.GetString("KEYCLOAK_EXPECTED_ISSUER", "")
-	cfg.Security.ExpectedAudience = env.GetString("KEYCLOAK_EXPECTED_AUDIENCE", "")
-	cfg.Security.BackendClientID = env.GetString("KEYCLOAK_BACKEND_CLIENT_ID", "backend-auth-client")
 
 	// Image processing
 	cfg.Image = ImageConfig{

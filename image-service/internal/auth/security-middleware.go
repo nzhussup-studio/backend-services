@@ -1,71 +1,37 @@
 package auth
 
 import (
-	"errors"
-	custom_errors "image-service/internal/errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-// AuthMiddleware is a middleware function that checks the authorization token
-// in the request header and validates it against Keycloak's JWKS.
-// If the token is valid, it sets the username and roles in the context.
-// If the token is invalid or missing, it returns a 401 Unauthorized response.
-// It allows GET requests to pass through without validation.
+// AuthMiddleware trusts identity only after the edge gateway has validated the
+// token and replaced the X-User-* headers. Network policy must prevent callers
+// from reaching this service without passing through that gateway.
 func AuthMiddleware(config *AuthConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		if c.Request.Method == http.MethodGet && !shouldAuthenticate(c, config.Rules) {
 			c.Next()
 			return
 		}
 
-		if config.JWKSetURL == "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Keycloak auth configuration is incomplete"})
-			c.Abort()
-			return
-		}
-
-		token, err := GetToken(c)
+		identity, err := IdentityFromHeaders(c)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			c.Abort()
 			return
 		}
-		if token == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			c.Abort()
-			return
-		}
 
-		validationResponse, err := Validate(c, config, token)
-		if err != nil {
-			switch {
-			case errors.Is(err, custom_errors.ErrUnauthorized):
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-				c.Abort()
-				return
-			case errors.Is(err, custom_errors.ErrInternalServer):
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Keycloak validation failed"})
-				c.Abort()
-				return
-			default:
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-				c.Abort()
-				return
-			}
-		}
-
-		if !isAdmin(validationResponse.Roles) {
+		if !isAdmin(identity.Roles) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 			c.Abort()
 			return
 		}
 
-		c.Set("username", validationResponse.Username)
-		c.Set("roles", validationResponse.Roles)
-
+		c.Set("subject", identity.Subject)
+		c.Set("username", identity.Username)
+		c.Set("roles", identity.Roles)
 		c.Next()
 	}
 }

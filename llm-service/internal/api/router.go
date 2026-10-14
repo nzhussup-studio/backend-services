@@ -1,6 +1,8 @@
 package api
 
 import (
+	"llm-service/internal/api/middleware"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -11,6 +13,7 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	api.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	api.GET("/health", s.handler.GetHealth)
 	api.GET("/summarize", s.handler.GetSummarizer)
-	api.GET("/configuration", s.handler.GetConfiguration)
-	api.PUT("/configuration", s.handler.PutConfiguration)
+	configuration := api.Group("/configuration", middleware.RequireAdmin())
+	configuration.GET("", s.handler.GetConfiguration)
+	configuration.PUT("", s.handler.PutConfiguration)
 }

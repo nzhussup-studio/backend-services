@@ -40,7 +40,7 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-nzhussup}
       KC_HTTP_ENABLED: "true"
       KC_PROXY_HEADERS: xforwarded
-      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-localhost}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-http://localhost:8081}
       KC_HOSTNAME_STRICT: ${KEYCLOAK_HOSTNAME_STRICT:-false}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-root}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-root}
@@ -163,8 +163,6 @@ services:
       SPRING_REDIS_PORT: 6379
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-      KEYCLOAK_BACKEND_CLIENT_ID: ${KEYCLOAK_BACKEND_CLIENT_ID:-backend-auth-client}
-      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}/protocol/openid-connect/certs
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8010/v1/base/health"]
       interval: 10s
@@ -206,8 +204,6 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       GIN_MODE: release
-      KEYCLOAK_JWK_SET_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}/protocol/openid-connect/certs
-      KEYCLOAK_BACKEND_CLIENT_ID: ${KEYCLOAK_BACKEND_CLIENT_ID:-backend-auth-client}
     volumes:
       - image-data:/app/var/images
     networks:
@@ -220,7 +216,7 @@ services:
       redis:
         condition: service_healthy
     environment:
-      NGINX_GATEWAY_URL: http://nginx-gateway:8082
+      BASE_SERVICE_URL: http://base-service:8010
       REDIS_HOST: redis
       REDIS_PORT: 6379
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
@@ -242,7 +238,6 @@ services:
       KEYCLOAK_ADMIN_REALM: master
       KEYCLOAK_ADMIN_CLIENT_ID: ${ACCOUNT_SERVICE_ADMIN_CLIENT_ID:-account-service-admin}
       KEYCLOAK_ADMIN_CLIENT_SECRET: ${ACCOUNT_SERVICE_ADMIN_CLIENT_SECRET:-account-service-dev-secret}
-      KEYCLOAK_JWK_SET_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM_NAME:-backend-auth-dev}/protocol/openid-connect/certs
       PORT: 8087
       API_BASE_PATH: /v1/account
     healthcheck:
@@ -254,10 +249,21 @@ services:
     networks:
       - backend-internal
 
-  nginx-gateway:
+  api-docs:
     build:
-      context: ../nginx-gateway
-      dockerfile: Dockerfile
+      context: ../api-docs
+    volumes:
+      - ../openapi.yaml:/usr/share/nginx/html/docs/specs/openapi.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--output-document=-", "http://127.0.0.1:8080/docs/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-internal
+
+  envoy:
+    image: envoyproxy/envoy:v1.39.1
     depends_on:
       base-service:
         condition: service_healthy
@@ -267,18 +273,18 @@ services:
         condition: service_started
       account-service:
         condition: service_healthy
-    environment:
-      NGINX_GATEWAY_LISTEN_PORT: 8082
-      NGINX_GATEWAY_BASE_UPSTREAM_HOST: base-service
-      NGINX_GATEWAY_BASE_UPSTREAM_PORT: 8010
-      NGINX_GATEWAY_IMAGE_UPSTREAM_HOST: image-service
-      NGINX_GATEWAY_IMAGE_UPSTREAM_PORT: 8085
-      NGINX_GATEWAY_LLM_UPSTREAM_HOST: llm-service
-      NGINX_GATEWAY_LLM_UPSTREAM_PORT: 8086
-      NGINX_GATEWAY_ACCOUNT_UPSTREAM_HOST: account-service
-      NGINX_GATEWAY_ACCOUNT_UPSTREAM_PORT: 8087
+      api-docs:
+        condition: service_healthy
+    command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
     ports:
-      - "${NGINX_GATEWAY_PORT:-8082}:8082"
+      - "${API_GATEWAY_PORT:-8082}:8082"
+    healthcheck:
+      test: ["CMD", "envoy", "--mode", "validate", "-c", "/etc/envoy/envoy.yaml"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - backend-internal
 

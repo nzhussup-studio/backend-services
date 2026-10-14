@@ -23,8 +23,8 @@ This repository contains the backend runtime for `nzhussup.dev` and its admin ec
 - `llm-service`  
   LLM-backed capabilities used by the platform.
 
-- `nginx-gateway`
-  Lightweight edge router for local and deployment packaging.
+- `api-docs`
+  Static Swagger UI for the unified backend OpenAPI document.
 
 - `keycloak-server`
   Keycloak image source, production realm template, and startup rendering logic for platform IAM.
@@ -101,4 +101,4 @@ For Java services, the generator uses an `openapi` runtime profile so specs can 
 
 The generator currently supports the services listed in `openapi-services.json`.
 
-`nginx-gateway` is intentionally excluded from OpenAPI generation.
+The unified specification is copied into `api-docs/docs/specs/openapi.yaml`.

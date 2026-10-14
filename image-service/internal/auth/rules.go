@@ -6,9 +6,5 @@ type AuthRule struct {
 }
 
 type AuthConfig struct {
-	JWKSetURL        string
-	ExpectedIssuer   string
-	ExpectedAudience string
-	BackendClientID  string
-	Rules            []AuthRule
+	Rules []AuthRule
 }

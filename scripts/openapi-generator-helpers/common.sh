@@ -22,15 +22,15 @@ read_manifest_services() {
 build_unified_openapi() {
   local output_file="${REPO_ROOT}/openapi.yaml"
   local manifest_file="$1"
-  local gateway_spec="${REPO_ROOT}/nginx-gateway/docs/specs/openapi.yaml"
+  local docs_spec="${REPO_ROOT}/api-docs/docs/specs/openapi.yaml"
 
   ruby "${HELPERS_DIR}/build_unified_openapi.rb" "$manifest_file" "$REPO_ROOT"
   sanitize_yaml_spec "$output_file"
   echo "Generated ${output_file}"
 
-  mkdir -p "$(dirname "$gateway_spec")"
-  cp "$output_file" "$gateway_spec"
-  echo "Synced ${gateway_spec}"
+  mkdir -p "$(dirname "$docs_spec")"
+  cp "$output_file" "$docs_spec"
+  echo "Synced ${docs_spec}"
 }
 
 resolve_path() {
@@ -45,16 +45,6 @@ resolve_path() {
 
 validate_service_dir() {
   local service_dir="$1"
-  local service_name
-
-  service_name="$(basename "$service_dir")"
-
-  case "$service_name" in
-    nginx-gateway)
-      fail "OpenAPI generation is not supported for ${service_name}."
-      ;;
-  esac
-
   case "$service_dir" in
     "${REPO_ROOT}"/*) ;;
     *)

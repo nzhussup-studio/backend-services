@@ -17,7 +17,7 @@ func (a *app) GetRouter() *gin.Engine {
 	v1 := router.Group(a.config.apiBasePath)
 	v1.GET("/health", controller.HealthCheckHandler)
 	v1.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	v1.Use(security.AuthMiddleware(a.securityConfig))
+	v1.Use(security.AuthMiddleware())
 	v1.DELETE("", a.controller.DeleteCurrentAccount)
 
 	return router
