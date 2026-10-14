@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -21,37 +22,57 @@ public class GitHubProjectDescriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(GitHubProjectDescriptionService.class);
     private static final String GITHUB_API_VERSION = "2022-11-28";
+    private static final String USER_AGENT = "nzhussup-studio-base-service";
 
     private final RestClient restClient;
+    private final RestClient anonymousRestClient;
+    private final boolean authenticated;
 
     @Autowired
     public GitHubProjectDescriptionService(
             RestClient.Builder restClientBuilder,
             @Value("${app.github.token:}") String githubToken) {
-        RestClient.Builder builder = restClientBuilder
+        this.restClient = createClient(restClientBuilder.clone(), githubToken);
+        this.anonymousRestClient = githubToken.isBlank()
+                ? this.restClient
+                : createClient(restClientBuilder.clone(), "");
+        this.authenticated = !githubToken.isBlank();
+    }
+
+    private static RestClient createClient(RestClient.Builder builder, String githubToken) {
+        builder
                 .baseUrl("https://api.github.com")
                 .requestFactory(new JdkClientHttpRequestFactory(HttpClient.newBuilder()
                         .followRedirects(HttpClient.Redirect.NORMAL)
                         .build()))
                 .defaultHeader(HttpHeaders.ACCEPT, "application/vnd.github+json")
+                .defaultHeader(HttpHeaders.USER_AGENT, USER_AGENT)
                 .defaultHeader("X-GitHub-Api-Version", GITHUB_API_VERSION);
 
         if (!githubToken.isBlank()) {
             builder.defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + githubToken);
         }
-
-        this.restClient = builder.build();
+        return builder.build();
     }
 
     GitHubProjectDescriptionService(RestClient restClient) {
         this.restClient = restClient;
+        this.anonymousRestClient = restClient;
+        this.authenticated = false;
+    }
+
+    GitHubProjectDescriptionService(RestClient restClient, RestClient anonymousRestClient) {
+        this.restClient = restClient;
+        this.anonymousRestClient = anonymousRestClient;
+        this.authenticated = true;
     }
 
     /**
-     * Empty strings are deliberately returned (and cached) when no description can be
-     * obtained. The project response converts them to null.
+     * Empty strings are not cached so a transient GitHub failure can recover on the
+     * next request. The project response converts them to null.
      */
-    @Cacheable(value = "githubProjectDescriptions", key = "#repositoryUrl", sync = true)
+    @Cacheable(value = "githubProjectDescriptions", key = "#repositoryUrl",
+            unless = "#result == null || #result.isBlank()")
     public String getDescription(String repositoryUrl) {
         Optional<RepositoryCoordinates> coordinates = RepositoryCoordinates.from(repositoryUrl);
         if (coordinates.isEmpty()) {
@@ -60,20 +81,41 @@ public class GitHubProjectDescriptionService {
 
         RepositoryCoordinates repository = coordinates.get();
         try {
-            GitHubRepository response = restClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .pathSegment("repos", repository.owner(), repository.name())
-                            .build())
-                    .retrieve()
-                    .body(GitHubRepository.class);
-            return response == null || response.description() == null
-                    ? ""
-                    : response.description();
+            return fetchDescription(restClient, repository);
+        } catch (RestClientResponseException exception) {
+            if (authenticated && (exception.getStatusCode().value() == 401
+                    || exception.getStatusCode().value() == 403)) {
+                log.warn("Authenticated GitHub request for {}/{} returned {}; retrying publicly",
+                        repository.owner(), repository.name(), exception.getStatusCode().value());
+                try {
+                    return fetchDescription(anonymousRestClient, repository);
+                } catch (Exception fallbackException) {
+                    log.warn("Could not fetch public GitHub description for {}/{}: {}",
+                            repository.owner(), repository.name(), fallbackException.getMessage());
+                    return "";
+                }
+            }
+            log.warn("Could not fetch GitHub description for {}/{} (HTTP {}): {}",
+                    repository.owner(), repository.name(), exception.getStatusCode().value(),
+                    exception.getMessage());
+            return "";
         } catch (Exception exception) {
             log.warn("Could not fetch GitHub description for {}/{}: {}",
                     repository.owner(), repository.name(), exception.getMessage());
             return "";
         }
+    }
+
+    private String fetchDescription(RestClient client, RepositoryCoordinates repository) {
+        GitHubRepository response = client.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .pathSegment("repos", repository.owner(), repository.name())
+                            .build())
+                    .retrieve()
+                    .body(GitHubRepository.class);
+        return response == null || response.description() == null
+                ? ""
+                : response.description();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

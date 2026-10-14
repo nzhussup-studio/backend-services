@@ -3,7 +3,6 @@ package com.nzhussup.baseservice.service;
 import com.nzhussup.baseservice.model.Project;
 import com.nzhussup.baseservice.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +21,6 @@ public class ProjectService extends BaseService<Project> {
     }
 
     @Override
-    @Cacheable(value = "ProjectService", key = "'ProjectService_all'")
     public List<Project> findAll() {
         List<Project> projects = repository.findAll();
         projects.forEach(this::addGitHubDescription);
