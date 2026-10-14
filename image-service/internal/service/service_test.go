@@ -3,7 +3,6 @@ package service
 import (
 	"testing"
 
-	"image-service/internal/auth"
 	"image-service/internal/cache"
 	appconfig "image-service/internal/config"
 	"image-service/internal/repository"
@@ -15,11 +14,10 @@ import (
 func TestNewService(t *testing.T) {
 	mockStorage := &repository.Storage{}
 	mockRedis := &cache.RedisClient{}
-	mockSecurity := &auth.AuthConfig{}
 	validate := validator.New()
 	imageCfg := appconfig.ImageConfig{}
 
-	svc := NewService(mockStorage, mockRedis, mockSecurity, validate, imageCfg)
+	svc := NewService(mockStorage, mockRedis, validate, imageCfg)
 
 	assert.NotNil(t, svc)
 	assert.Equal(t, mockStorage, svc.storage)

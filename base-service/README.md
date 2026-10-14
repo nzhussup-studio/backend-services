@@ -13,9 +13,9 @@
 ## Auth Model
 
 - `GET` endpoints are public
-- non-`GET` endpoints require `ROLE_ADMIN`
-- JWT validation is performed locally against Keycloak JWKS
-- small exception: `GET /v1/base/cv-generator-preference` also requires `ROLE_ADMIN`
+- Envoy Gateway validates JWTs and enforces admin access before requests reach this service.
+- The service accepts only gateway-injected `X-User-*` identity headers; network policy blocks direct callers.
+- `GET /v1/base/cv-generator-preference` requires an authenticated user; public GET endpoints remain public.
 
 ## CV Generator Preferences
 
@@ -24,7 +24,7 @@
 
 ## Runtime Inputs
 
-The service expects database and Redis settings plus Keycloak JWT configuration:
+The service expects database and Redis settings:
 
 - `SPRING_DATASOURCE_HOST`
 - `SPRING_DATASOURCE_DB`

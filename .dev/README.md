@@ -36,7 +36,20 @@ docker compose -f backend-services/.dev/compose.yml up --build
 
 The stack works without a `.env` file because the compose file already defines defaults for all required variables.
 
-The local gateway validates its configuration on startup, routes public reads without a token, and requires a Keycloak JWT for protected routes. Run the read-only smoke checks with:
+The local gateway configuration lives in `envoy/envoy.yaml`. It deliberately uses one
+file because Envoy static bootstrap configuration has no native YAML include feature.
+The file is organised in the same order as production: admin routes, authenticated
+routes, public routes, HTTP filters, then upstream clusters.
+
+Local access rules match the production gateway:
+
+- public: portfolio reads, public album reads, LLM health/docs/summarization, and service health/docs
+- authenticated: account endpoints and CV generator preferences
+- admin: portfolio writes, restricted album reads and writes, and LLM configuration
+
+Envoy validates the Keycloak JWT, applies the `ROLE_ADMIN` check for admin routes,
+and injects only scalar identity headers (`X-User-ID`, `X-User-Name`, and
+`X-User-Email`) for upstream services. Run the read-only smoke checks with:
 
 ```bash
 backend-services/.dev/smoke-gateway.sh

@@ -1,9 +1,10 @@
 package service
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
-	"image-service/internal/auth"
 	custom_errors "image-service/internal/errors"
 	"image-service/internal/model"
 	"image-service/internal/repository"
@@ -110,37 +111,32 @@ func setupAlbumServiceWithMock(album *model.Album) (*AlbumService, *MockAlbumRep
 	return service, mockAlbumRepo, mockRedis
 }
 
-func TestGetAlbum_Private_Admin(t *testing.T) {
+func TestGetAlbum_Private_WithTrustedIdentity(t *testing.T) {
 	album := &model.Album{ID: "album1", Type: model.Private}
 	service, _, mockRedis := setupAlbumServiceWithMock(album)
 
-	original := auth.CheckIsAdmin
-	auth.CheckIsAdmin = func(ctx *gin.Context, config *auth.AuthConfig) error {
-		return nil
-	}
-	defer func() { auth.CheckIsAdmin = original }()
-
-	result, err := service.GetAlbum(&gin.Context{}, album.ID)
+	result, err := service.GetAlbum(requestContextWithIdentity("user-1"), album.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, album, result)
 	mockRedis.AssertExpectations(t)
 }
 
-func TestGetAlbum_Private_NotAdmin(t *testing.T) {
+func TestGetAlbum_Private_WithoutTrustedIdentity(t *testing.T) {
 	album := &model.Album{ID: "album2", Type: model.Private}
 	service, _, mockRedis := setupAlbumServiceWithMock(album)
 
-	original := auth.CheckIsAdmin
-	auth.CheckIsAdmin = func(ctx *gin.Context, config *auth.AuthConfig) error {
-		return custom_errors.NewError(custom_errors.ErrForbidden, "User is not an admin")
-	}
-	defer func() { auth.CheckIsAdmin = original }()
-
-	result, err := service.GetAlbum(&gin.Context{}, album.ID)
+	result, err := service.GetAlbum(requestContextWithIdentity(""), album.ID)
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.ErrorIs(t, err, custom_errors.ErrForbidden)
+	assert.ErrorIs(t, err, custom_errors.ErrUnauthorized)
 	mockRedis.AssertExpectations(t)
+}
+
+func requestContextWithIdentity(userID string) *gin.Context {
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ctx.Request = httptest.NewRequest(http.MethodGet, "/", nil)
+	ctx.Request.Header.Set("X-User-ID", userID)
+	return ctx
 }

@@ -20,17 +20,17 @@ func init() {
 }
 
 type app struct {
-	config     *appconfig.Config
-	authCfg    *auth.AuthConfig
-	Controller *controller.Controller
-	Service    *service.Service
-	Storage    *repository.Storage
-	Redis      *cache.RedisClient
+	config         *appconfig.Config
+	protectedReads *auth.ProtectedReadRules
+	Controller     *controller.Controller
+	Service        *service.Service
+	Storage        *repository.Storage
+	Redis          *cache.RedisClient
 }
 
 func newApp(config *appconfig.Config) *app {
-	authCfg := &auth.AuthConfig{
-		Rules: []auth.AuthRule{
+	protectedReads := &auth.ProtectedReadRules{
+		Rules: []auth.ProtectedReadRule{
 			{
 				Path: config.API.BasePath,
 				QueryParams: map[string]string{
@@ -59,16 +59,16 @@ func newApp(config *appconfig.Config) *app {
 		config.Redis.TTL,
 	)
 	storage := repository.NewStorage(config.Storage.Path, config.API.BasePath)
-	service := service.NewService(storage, redisClient, authCfg, validate, config.Image)
+	service := service.NewService(storage, redisClient, validate, config.Image)
 	controller := controller.NewController(service)
 
 	return &app{
-		config:     config,
-		authCfg:    authCfg,
-		Controller: controller,
-		Service:    service,
-		Storage:    storage,
-		Redis:      redisClient,
+		config:         config,
+		protectedReads: protectedReads,
+		Controller:     controller,
+		Service:        service,
+		Storage:        storage,
+		Redis:          redisClient,
 	}
 }
 

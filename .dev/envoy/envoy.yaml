@@ -1,10 +1,10 @@
+# Local equivalent of the production Envoy Gateway API routes and policies.
+# Route order matters: specific admin routes must precede public GET routes.
 static_resources:
   listeners:
     - name: api_listener
       address:
-        socket_address:
-          address: 0.0.0.0
-          port_value: 8082
+        socket_address: { address: 0.0.0.0, port_value: 8082 }
       filter_chains:
         - filters:
             - name: envoy.filters.network.http_connection_manager
@@ -34,65 +34,130 @@ static_resources:
                           allow_headers: authorization,content-type,accept,origin,cache-control,x-requested-with
                           allow_credentials: true
                       routes:
-                        - match: { path: "/" }
-                          route:
-                            cluster: api_docs
-                            prefix_rewrite: /docs/
-                            timeout: 15s
-                        - match: { prefix: "/v1/base/health" }
-                          route: { cluster: base_service, timeout: 15s }
-                        - match: { prefix: "/v1/base/docs" }
-                          route: { cluster: base_service, timeout: 15s }
-                        - match: { prefix: "/v1/base/cv-generator-preference" }
-                          typed_per_filter_config: &require_jwt
+                        # Admin: JWT must be valid and include ROLE_ADMIN.
+                        - match:
+                            prefix: /v1/base
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex: { regex: "^(POST|PUT|DELETE)$" }
+                          typed_per_filter_config: &admin_route
                             envoy.filters.http.jwt_authn:
                               "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
                               requirement_name: valid_keycloak_token
+                            envoy.filters.http.rbac:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBACPerRoute
+                              rbac:
+                                rules:
+                                  action: ALLOW
+                                  policies:
+                                    administrators:
+                                      permissions: [{ any: true }]
+                                      principals:
+                                        - sourced_metadata:
+                                            metadata_source: DYNAMIC
+                                            metadata_matcher:
+                                              filter: envoy.filters.http.jwt_authn
+                                              path:
+                                                - key: keycloak_jwt
+                                                - key: realm_access
+                                                - key: roles
+                                              value:
+                                                list_match:
+                                                  one_of:
+                                                    string_match: { exact: ROLE_ADMIN }
                           route: { cluster: base_service, timeout: 600s }
                         - match:
-                            prefix: "/v1/base"
-                            headers: [{ name: ":method", string_match: { exact: "GET" } }]
-                          route: { cluster: base_service, timeout: 600s }
-                        - match: { prefix: "/v1/base" }
-                          typed_per_filter_config: *require_jwt
-                          route: { cluster: base_service, timeout: 600s }
-                        - match:
-                            prefix: "/v1/album"
-                            headers: [{ name: ":method", string_match: { exact: "GET" } }]
+                            prefix: /v1/album
+                            headers:
+                              - name: ":method"
+                                string_match: { exact: GET }
                             query_parameters:
                               - name: type
                                 string_match:
                                   safe_regex: { regex: "^(all|private|semi-public)$" }
-                          typed_per_filter_config: *require_jwt
+                          typed_per_filter_config: *admin_route
                           route: { cluster: image_service, timeout: 600s }
                         - match:
-                            prefix: "/v1/album"
-                            headers: [{ name: ":method", string_match: { exact: "GET" } }]
+                            prefix: /v1/album
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  safe_regex: { regex: "^(POST|PUT|PATCH|DELETE)$" }
+                          typed_per_filter_config: *admin_route
                           route: { cluster: image_service, timeout: 600s }
-                        - match: { prefix: "/v1/album" }
-                          typed_per_filter_config: *require_jwt
-                          route: { cluster: image_service, timeout: 600s }
-                        - match:
-                            prefix: "/v1/llm/configuration"
-                          typed_per_filter_config: *require_jwt
+                        - match: { prefix: /v1/llm/configuration }
+                          typed_per_filter_config: *admin_route
                           route: { cluster: llm_service, timeout: 600s }
                         - match:
-                            prefix: "/v1/llm"
-                            headers: [{ name: ":method", string_match: { exact: "GET" } }]
+                            prefix: /v1/llm
+                            headers:
+                              - name: ":method"
+                                string_match: { exact: PUT }
+                          typed_per_filter_config: *admin_route
                           route: { cluster: llm_service, timeout: 600s }
-                        - match: { prefix: "/v1/llm" }
-                          typed_per_filter_config: *require_jwt
-                          route: { cluster: llm_service, timeout: 600s }
-                        - match: { prefix: "/v1/account/health" }
+
+                        # Public exceptions must precede the authenticated account prefix.
+                        - match: { prefix: /v1/account/health }
                           route: { cluster: account_service, timeout: 15s }
-                        - match: { prefix: "/v1/account/docs" }
+                        - match: { prefix: /v1/account/docs }
                           route: { cluster: account_service, timeout: 15s }
-                        - match: { prefix: "/v1/account" }
-                          typed_per_filter_config: *require_jwt
+
+                        # Authenticated: any valid Keycloak token.
+                        - match: { prefix: /v1/base/cv-generator-preference }
+                          typed_per_filter_config: &authenticated_route
+                            envoy.filters.http.jwt_authn:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                              requirement_name: valid_keycloak_token
+                          route: { cluster: base_service, timeout: 600s }
+                        - match: { prefix: /v1/account }
+                          typed_per_filter_config: *authenticated_route
                           route: { cluster: account_service, timeout: 30s }
-                        - match: { prefix: "/docs" }
+
+                        # Public routes.
+                        - match: { path: / }
+                          redirect:
+                            path_redirect: /docs/
+                            response_code: MOVED_PERMANENTLY
+                        - match:
+                            prefix: /v1
+                            headers:
+                              - name: ":method"
+                                string_match: { exact: OPTIONS }
+                          route: { cluster: base_service, timeout: 15s }
+                        - match: { prefix: /docs }
                           route: { cluster: api_docs, timeout: 15s }
-                        - match: { prefix: "/" }
+                        - match:
+                            prefix: /v1/base
+                            headers:
+                              - name: ":method"
+                                string_match: { exact: GET }
+                          route: { cluster: base_service, timeout: 600s }
+                        - match:
+                            prefix: /v1/album
+                            headers:
+                              - name: ":method"
+                                string_match: { exact: GET }
+                          route: { cluster: image_service, timeout: 600s }
+                        - match:
+                            path: /v1/llm/health
+                            headers:
+                              - name: ":method"
+                                string_match: { exact: GET }
+                          route: { cluster: llm_service, timeout: 15s }
+                        - match:
+                            prefix: /v1/llm/docs
+                            headers:
+                              - name: ":method"
+                                string_match: { exact: GET }
+                          route: { cluster: llm_service, timeout: 15s }
+                        - match:
+                            path: /v1/llm/summarize
+                            headers:
+                              - name: ":method"
+                                string_match: { exact: GET }
+                          route: { cluster: llm_service, timeout: 600s }
+                        - match: { prefix: / }
                           direct_response:
                             status: 404
                             body: { inline_string: '{"error":{"status":404,"message":"Not found"}}' }
@@ -103,11 +168,13 @@ static_resources:
                   - name: envoy.filters.http.jwt_authn
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
+                      bypass_cors_preflight: true
                       providers:
                         keycloak:
                           issuer: http://localhost:8081/realms/backend-auth-dev
                           audiences: [backend-auth-client]
                           forward: true
+                          payload_in_metadata: keycloak_jwt
                           remote_jwks:
                             http_uri:
                               uri: http://keycloak:8080/realms/backend-auth-dev/protocol/openid-connect/certs
@@ -118,17 +185,19 @@ static_resources:
                             - { header_name: x-user-id, claim_name: sub }
                             - { header_name: x-user-name, claim_name: preferred_username }
                             - { header_name: x-user-email, claim_name: email }
-                            - { header_name: x-user-roles, claim_name: realm_access.roles }
                       requirement_map:
                         valid_keycloak_token:
                           provider_name: keycloak
                       rules:
-                        - match: { prefix: "/" }
+                        - match: { prefix: / }
                           requires:
                             requires_any:
                               requirements:
                                 - provider_name: keycloak
                                 - allow_missing: {}
+                  - name: envoy.filters.http.rbac
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
                   - name: envoy.filters.http.local_ratelimit
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
@@ -214,9 +283,7 @@ static_resources:
 
 admin:
   address:
-    socket_address:
-      address: 0.0.0.0
-      port_value: 9901
+    socket_address: { address: 0.0.0.0, port_value: 9901 }
 
 overload_manager:
   refresh_interval: 0.25s

@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func TestAuthMiddlewareRejectsMissingTrustedIdentity(t *testing.T) {
+func TestTrustedIdentityMiddlewareRejectsMissingTrustedIdentity(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	router.Use(AuthMiddleware())
+	router.Use(TrustedIdentityMiddleware())
 	router.GET("/protected", func(c *gin.Context) { c.Status(http.StatusNoContent) })
 
 	response := httptest.NewRecorder()
@@ -22,10 +22,10 @@ func TestAuthMiddlewareRejectsMissingTrustedIdentity(t *testing.T) {
 	}
 }
 
-func TestAuthMiddlewareCopiesTrustedIdentity(t *testing.T) {
+func TestTrustedIdentityMiddlewareCopiesTrustedIdentity(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	router.Use(AuthMiddleware())
+	router.Use(TrustedIdentityMiddleware())
 	router.GET("/protected", func(c *gin.Context) {
 		if c.GetString("subject") != "user-123" || c.GetString("username") != "jane.user" {
 			c.Status(http.StatusInternalServerError)

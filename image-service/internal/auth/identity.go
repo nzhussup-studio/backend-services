@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"strings"
 
 	custom_errors "image-service/internal/errors"
@@ -13,7 +11,6 @@ import (
 type Identity struct {
 	Subject  string
 	Username string
-	Roles    []string
 }
 
 func IdentityFromHeaders(c *gin.Context) (Identity, error) {
@@ -22,62 +19,10 @@ func IdentityFromHeaders(c *gin.Context) (Identity, error) {
 		return Identity{}, custom_errors.NewError(custom_errors.ErrUnauthorized, "Trusted identity is missing")
 	}
 
-	roles, err := decodeRoles(c.GetHeader("X-User-Roles"))
-	if err != nil {
-		return Identity{}, custom_errors.NewError(custom_errors.ErrUnauthorized, "Trusted roles are invalid")
-	}
-
 	return Identity{
 		Subject:  subject,
 		Username: firstNonEmpty(strings.TrimSpace(c.GetHeader("X-User-Name")), subject),
-		Roles:    roles,
 	}, nil
-}
-
-func decodeRoles(value string) ([]string, error) {
-	value = strings.TrimSpace(value)
-	if value == "" {
-		return nil, nil
-	}
-
-	encodings := []*base64.Encoding{
-		base64.StdEncoding,
-		base64.RawStdEncoding,
-		base64.URLEncoding,
-		base64.RawURLEncoding,
-	}
-	for _, encoding := range encodings {
-		decoded, err := encoding.DecodeString(value)
-		if err != nil {
-			continue
-		}
-		var roles []string
-		if err := json.Unmarshal(decoded, &roles); err == nil {
-			return roles, nil
-		}
-	}
-
-	if !strings.ContainsAny(value, "[]{}\"") {
-		parts := strings.Split(value, ",")
-		roles := make([]string, 0, len(parts))
-		for _, part := range parts {
-			if role := strings.TrimSpace(part); role != "" {
-				roles = append(roles, role)
-			}
-		}
-		return roles, nil
-	}
-
-	return nil, custom_errors.NewError(custom_errors.ErrUnauthorized, "Invalid roles header")
-}
-
-func isAdmin(roles []string) bool {
-	for _, role := range roles {
-		if role == "ROLE_ADMIN" {
-			return true
-		}
-	}
-	return false
 }
 
 func firstNonEmpty(values ...string) string {
@@ -89,7 +34,9 @@ func firstNonEmpty(values ...string) string {
 	return "unknown"
 }
 
-func shouldAuthenticate(c *gin.Context, rules []AuthRule) bool {
+// RequiresIdentity reports whether this request is one of the protected reads.
+// Other protected routes are guarded by the middleware unconditionally.
+func RequiresIdentity(c *gin.Context, rules []ProtectedReadRule) bool {
 	requestPath := c.Request.URL.Path
 	for _, rule := range rules {
 		if rule.Path != requestPath {
@@ -109,13 +56,9 @@ func shouldAuthenticate(c *gin.Context, rules []AuthRule) bool {
 	return false
 }
 
-var CheckIsAdmin = func(c *gin.Context, _ *AuthConfig) error {
-	identity, err := IdentityFromHeaders(c)
-	if err != nil {
-		return err
-	}
-	if isAdmin(identity.Roles) {
-		return nil
-	}
-	return custom_errors.NewError(custom_errors.ErrForbidden, "User is not an admin")
+// RequireIdentity verifies a gateway-injected identity for a request that Envoy
+// has already authorized.
+func RequireIdentity(c *gin.Context) error {
+	_, err := IdentityFromHeaders(c)
+	return err
 }

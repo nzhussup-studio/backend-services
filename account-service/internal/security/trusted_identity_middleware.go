@@ -7,7 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+// TrustedIdentityMiddleware accepts identity headers injected by Envoy after
+// JWT validation. NetworkPolicy restricts this service to gateway traffic.
+func TrustedIdentityMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		subject := strings.TrimSpace(c.GetHeader("X-User-ID"))
 		if subject == "" {

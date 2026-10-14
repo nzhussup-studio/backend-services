@@ -14,17 +14,16 @@ import (
 )
 
 type AlbumService struct {
-	storage        *repository.Storage
-	redis          cache.RedisClientInterface
-	securityConfig *auth.AuthConfig
-	validate       *validator.Validate
+	storage  *repository.Storage
+	redis    cache.RedisClientInterface
+	validate *validator.Validate
 }
 
 func (s *AlbumService) GetAlbum(c *gin.Context, id string) (*model.Album, error) {
 	var cachedAlbum *model.Album
 	err := s.redis.Get(fmt.Sprintf("album_%s", id), &cachedAlbum)
 	if err == nil {
-		if err = allowedToReturn(c, cachedAlbum, s.securityConfig); err != nil {
+		if err = allowedToReturn(c, cachedAlbum); err != nil {
 			return nil, err
 		}
 		return cachedAlbum, nil
@@ -34,7 +33,7 @@ func (s *AlbumService) GetAlbum(c *gin.Context, id string) (*model.Album, error)
 	if err != nil {
 		return nil, err
 	}
-	if err = allowedToReturn(c, album, s.securityConfig); err != nil {
+	if err = allowedToReturn(c, album); err != nil {
 		return nil, err
 	}
 
@@ -128,9 +127,9 @@ func filterAlbums(albums []*model.AlbumPreview, predicate func(*model.AlbumPrevi
 	return filtered
 }
 
-func allowedToReturn(c *gin.Context, album *model.Album, securityConfig *auth.AuthConfig) error {
+func allowedToReturn(c *gin.Context, album *model.Album) error {
 	if album.Type == model.Private {
-		if err := auth.CheckIsAdmin(c, securityConfig); err != nil {
+		if err := auth.RequireIdentity(c); err != nil {
 			return err
 		}
 	}

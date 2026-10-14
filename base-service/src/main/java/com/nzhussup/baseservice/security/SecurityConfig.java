@@ -20,7 +20,8 @@ public class SecurityConfig {
                     requests.requestMatchers("/error").permitAll();
                     requests.requestMatchers("/v1/base/cv-generator-preference/**").authenticated();
                     requests.requestMatchers(HttpMethod.GET).permitAll();
-                    requests.anyRequest().hasRole("ADMIN");
+                    // Envoy authorizes admin routes before they reach this service.
+                    requests.anyRequest().authenticated();
                 })
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

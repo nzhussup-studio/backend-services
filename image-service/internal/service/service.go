@@ -1,7 +1,6 @@
 package service
 
 import (
-	"image-service/internal/auth"
 	"image-service/internal/cache"
 	appconfig "image-service/internal/config"
 	"image-service/internal/model"
@@ -40,12 +39,12 @@ type Service struct {
 
 type ImageConfig = appconfig.ImageConfig
 
-func NewService(storage *repository.Storage, redis *cache.RedisClient, securityConfig *auth.AuthConfig, validate *validator.Validate, imageCfg ImageConfig) *Service {
+func NewService(storage *repository.Storage, redis *cache.RedisClient, validate *validator.Validate, imageCfg ImageConfig) *Service {
 	return &Service{
 		storage:           storage,
 		validate:          validate,
 		imageConfig:       imageCfg,
-		AlbumService:      &AlbumService{storage: storage, redis: redis, securityConfig: securityConfig, validate: validate},
+		AlbumService:      &AlbumService{storage: storage, redis: redis, validate: validate},
 		ImageService:      &ImageService{storage: storage, redis: redis, validate: validate, cfg: imageCfg},
 		AsyncImageService: NewUploadJobService(storage, redis, validate, imageCfg),
 		CacheService:      &CacheService{redis: redis},
