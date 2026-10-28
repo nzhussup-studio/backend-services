@@ -9,6 +9,26 @@ This directory contains the source for the platform Keycloak image.
 - `docker-entrypoint.sh`
 - `dev.env.example`
 - `prod.env.example`
+- `theme/` — Keycloakify login and account theme
+
+## Theme development
+
+The `nzhussup` theme follows the visual language used by the portfolio and admin panel. It includes a custom login experience and a branded Single-Page Account Console.
+
+```bash
+cd theme
+npm ci
+npm run build
+npm run storybook
+```
+
+Build the deployable Keycloak theme JAR with:
+
+```bash
+npm run build-keycloak-theme
+```
+
+The Keycloak Docker image builds the theme, adds the generated JAR to `/opt/keycloak/providers`, and runs the optimized Keycloak build automatically. New realm imports select `nzhussup` as both the login and account theme. Existing realms must select it once under **Realm settings → Themes** because `--import-realm` does not overwrite an existing realm.
 
 ## Runtime Model
 

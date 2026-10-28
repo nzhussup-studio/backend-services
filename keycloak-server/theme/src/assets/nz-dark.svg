@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 128" role="img" aria-labelledby="title">
+  <title id="title">NZ.</title>
+  <path fill="#f2eee6" d="M16 108V20h24l52 58V20h24v88H92L40 50v58H16Z"/>
+  <path fill="#f2eee6" d="M128 20h96v22l-62 44h62v22h-96V86l62-44h-62V20Z"/>
+  <circle cx="241" cy="97" r="11" fill="#83bba5"/>
+</svg>
