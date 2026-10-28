@@ -14,7 +14,10 @@ RUN npm run postinstall \
 FROM quay.io/keycloak/keycloak:26.1 AS keycloak-builder
 
 COPY --from=theme-builder /theme/dist_keycloak/nzhussup-keycloak-theme.jar /opt/keycloak/providers/nzhussup-keycloak-theme.jar
-RUN /opt/keycloak/bin/kc.sh build
+RUN /opt/keycloak/bin/kc.sh build \
+    --db=postgres \
+    --health-enabled=true \
+    --metrics-enabled=true
 
 FROM quay.io/keycloak/keycloak:26.1
 
