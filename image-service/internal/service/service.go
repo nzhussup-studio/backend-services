@@ -17,7 +17,9 @@ type Service struct {
 	imageConfig  appconfig.ImageConfig
 	AlbumService interface {
 		GetAlbumsPreview(string) ([]*model.AlbumPreview, error)
+		GetPublicAlbumsPreview(string) ([]*model.AlbumPreview, error)
 		GetAlbum(*gin.Context, string) (*model.Album, error)
+		GetPublicAlbum(*gin.Context, string) (*model.Album, error)
 		CreateAlbum(*model.AlbumPreview) (*model.AlbumPreview, error)
 		UpdateAlbum(string, *model.AlbumPreview) (*model.AlbumPreview, error)
 		DeleteAlbum(string) error

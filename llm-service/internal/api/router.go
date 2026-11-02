@@ -11,9 +11,9 @@ import (
 func (s *Server) registerRoutes(r *gin.Engine) {
 	api := r.Group(s.config.App.Endpoint)
 	api.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	api.GET("/health", s.handler.GetHealth)
-	api.GET("/summarize", s.handler.GetSummarizer)
-	configuration := api.Group("/configuration", middleware.RequireGatewayIdentity())
+	api.POST("/summaries", s.handler.GetSummarizer)
+	r.GET("/healthz", s.handler.GetHealth)
+	configuration := r.Group("/v1/admin/llm/configuration", middleware.RequireGatewayIdentity())
 	configuration.GET("", s.handler.GetConfiguration)
 	configuration.PUT("", s.handler.PutConfiguration)
 }

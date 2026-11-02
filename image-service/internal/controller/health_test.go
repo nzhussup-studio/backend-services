@@ -13,7 +13,7 @@ func TestHealthCheckHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest(http.MethodGet, "/v1/album/health", nil)
+	c.Request = httptest.NewRequest(http.MethodGet, "/healthz", nil)
 
 	HealthCheckHandler(c)
 

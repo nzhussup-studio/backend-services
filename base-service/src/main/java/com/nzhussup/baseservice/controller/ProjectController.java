@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping(AppConfig.baseApiPath+"project")
+@RequestMapping(AppConfig.adminApiPath + "projects")
 public class ProjectController extends BaseController<Project> {
 
     @Autowired

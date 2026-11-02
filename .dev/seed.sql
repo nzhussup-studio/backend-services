@@ -124,7 +124,7 @@ INSERT INTO projects (name, url, tech_stack, display_order) VALUES
   ),
   (
     'Image Album Service',
-    'https://api.nzhussup.dev/v1/album',
+    'https://api.nzhussup.dev/v1/albums',
     'Go,Redis,File Storage,REST',
     6
   );

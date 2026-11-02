@@ -15,12 +15,12 @@
 - `GET` endpoints are public
 - Envoy Gateway validates JWTs and enforces admin access before requests reach this service.
 - The service accepts only gateway-injected `X-User-*` identity headers; network policy blocks direct callers.
-- `GET /v1/base/cv-generator-preference` requires an authenticated user; public GET endpoints remain public.
+- `GET /v1/admin/cv-generator-preferences` requires an administrator; public content GET endpoints remain public.
 
 ## CV Generator Preferences
 
 - Stored in `cv_generator_preferences` table as JSON.
-- CRUD endpoint: `/v1/base/cv-generator-preference`.
+- Singleton endpoint: `GET` and `PUT /v1/admin/cv-generator-preferences`.
 
 ## Runtime Inputs
 

@@ -28,7 +28,7 @@ func main() {
 	cfg := config{
 		addr:        fmt.Sprintf(":%d", port),
 		port:        port,
-		apiBasePath: env.GetString("API_BASE_PATH", "/v1/account"),
+		apiBasePath: env.GetString("API_BASE_PATH", "/v1/me/account"),
 		keycloakConfig: &keycloakConfig{
 			baseURL:           env.GetString("KEYCLOAK_BASE_URL", "http://localhost:8081"),
 			realm:             env.GetString("KEYCLOAK_REALM", "backend-auth-dev"),

@@ -34,13 +34,16 @@ static_resources:
                           allow_headers: authorization,content-type,accept,origin,cache-control,x-requested-with
                           allow_credentials: true
                       routes:
-                        # Admin: JWT must be valid and include ROLE_ADMIN.
+                        # CORS preflight must be evaluated before authenticated routes.
                         - match:
-                            prefix: /v1/base
+                            prefix: /v1
                             headers:
                               - name: ":method"
-                                string_match:
-                                  safe_regex: { regex: "^(POST|PUT|DELETE)$" }
+                                string_match: { exact: OPTIONS }
+                          route: { cluster: base_service, timeout: 15s }
+
+                        # Admin: JWT must be valid and include ROLE_ADMIN.
+                        - match: { prefix: /v1/admin/albums }
                           typed_per_filter_config: &admin_route
                             envoy.filters.http.jwt_authn:
                               "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
@@ -66,52 +69,20 @@ static_resources:
                                                 list_match:
                                                   one_of:
                                                     string_match: { exact: ROLE_ADMIN }
+                          route: { cluster: image_service, timeout: 600s }
+                        - match: { prefix: /v1/admin/llm }
+                          typed_per_filter_config: *admin_route
+                          route: { cluster: llm_service, timeout: 600s }
+                        - match: { prefix: /v1/admin }
+                          typed_per_filter_config: *admin_route
                           route: { cluster: base_service, timeout: 600s }
-                        - match:
-                            prefix: /v1/album
-                            headers:
-                              - name: ":method"
-                                string_match: { exact: GET }
-                            query_parameters:
-                              - name: type
-                                string_match:
-                                  safe_regex: { regex: "^(all|private|semi-public)$" }
-                          typed_per_filter_config: *admin_route
-                          route: { cluster: image_service, timeout: 600s }
-                        - match:
-                            prefix: /v1/album
-                            headers:
-                              - name: ":method"
-                                string_match:
-                                  safe_regex: { regex: "^(POST|PUT|PATCH|DELETE)$" }
-                          typed_per_filter_config: *admin_route
-                          route: { cluster: image_service, timeout: 600s }
-                        - match: { prefix: /v1/llm/configuration }
-                          typed_per_filter_config: *admin_route
-                          route: { cluster: llm_service, timeout: 600s }
-                        - match:
-                            prefix: /v1/llm
-                            headers:
-                              - name: ":method"
-                                string_match: { exact: PUT }
-                          typed_per_filter_config: *admin_route
-                          route: { cluster: llm_service, timeout: 600s }
-
-                        # Public exceptions must precede the authenticated account prefix.
-                        - match: { prefix: /v1/account/health }
-                          route: { cluster: account_service, timeout: 15s }
-                        - match: { prefix: /v1/account/docs }
-                          route: { cluster: account_service, timeout: 15s }
 
                         # Authenticated: any valid Keycloak token.
-                        - match: { prefix: /v1/base/cv-generator-preference }
+                        - match: { prefix: /v1/me/account }
                           typed_per_filter_config: &authenticated_route
                             envoy.filters.http.jwt_authn:
                               "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
                               requirement_name: valid_keycloak_token
-                          route: { cluster: base_service, timeout: 600s }
-                        - match: { prefix: /v1/account }
-                          typed_per_filter_config: *authenticated_route
                           route: { cluster: account_service, timeout: 30s }
 
                         # Public routes.
@@ -119,43 +90,42 @@ static_resources:
                           redirect:
                             path_redirect: /docs/
                             response_code: MOVED_PERMANENTLY
-                        - match:
-                            prefix: /v1
-                            headers:
-                              - name: ":method"
-                                string_match: { exact: OPTIONS }
-                          route: { cluster: base_service, timeout: 15s }
                         - match: { prefix: /docs }
                           route: { cluster: api_docs, timeout: 15s }
                         - match:
-                            prefix: /v1/base
+                            safe_regex: { regex: "^/v1/(work-experiences|skills|projects|education-records|certificates)(/.*)?$" }
                             headers:
                               - name: ":method"
                                 string_match: { exact: GET }
+                          typed_per_filter_config: &public_route
+                            envoy.filters.http.jwt_authn:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                              disabled: true
+                          request_headers_to_remove: [x-user-id, x-user-name, x-user-email]
                           route: { cluster: base_service, timeout: 600s }
                         - match:
-                            prefix: /v1/album
+                            prefix: /v1/albums
                             headers:
                               - name: ":method"
                                 string_match: { exact: GET }
+                          typed_per_filter_config: *public_route
+                          request_headers_to_remove: [x-user-id, x-user-name, x-user-email]
                           route: { cluster: image_service, timeout: 600s }
-                        - match:
-                            path: /v1/llm/health
-                            headers:
-                              - name: ":method"
-                                string_match: { exact: GET }
-                          route: { cluster: llm_service, timeout: 15s }
                         - match:
                             prefix: /v1/llm/docs
                             headers:
                               - name: ":method"
                                 string_match: { exact: GET }
+                          typed_per_filter_config: *public_route
+                          request_headers_to_remove: [x-user-id, x-user-name, x-user-email]
                           route: { cluster: llm_service, timeout: 15s }
                         - match:
-                            path: /v1/llm/summarize
+                            path: /v1/llm/summaries
                             headers:
                               - name: ":method"
-                                string_match: { exact: GET }
+                                string_match: { exact: POST }
+                          typed_per_filter_config: *public_route
+                          request_headers_to_remove: [x-user-id, x-user-name, x-user-email]
                           route: { cluster: llm_service, timeout: 600s }
                         - match: { prefix: / }
                           direct_response:

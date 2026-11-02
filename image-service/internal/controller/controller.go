@@ -10,7 +10,9 @@ type Controller struct {
 	service         *service.Service
 	AlbumController interface {
 		Get(*gin.Context)
+		GetPublic(*gin.Context)
 		GetPreview(*gin.Context)
+		GetPublicPreview(*gin.Context)
 		Create(*gin.Context)
 		Update(*gin.Context)
 		Delete(*gin.Context)
@@ -20,6 +22,7 @@ type Controller struct {
 		UploadStatus(*gin.Context)
 		Delete(*gin.Context)
 		Serve(*gin.Context)
+		ServePublic(*gin.Context)
 		Rename(*gin.Context)
 	}
 	CacheController interface {

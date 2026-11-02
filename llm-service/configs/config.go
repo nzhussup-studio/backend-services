@@ -61,11 +61,11 @@ func NewConfigFromEnv() *Config {
 			Interval: 3 * time.Minute,
 		},
 		Services: ServicesConfig{
-			WorkExperienceURL: baseServiceURL + "/v1/base/work-experience",
-			EducationURL:      baseServiceURL + "/v1/base/education",
-			ProjectsURL:       baseServiceURL + "/v1/base/project",
-			SkillsURL:         baseServiceURL + "/v1/base/skill",
-			CertificatesURL:   baseServiceURL + "/v1/base/certificate",
+			WorkExperienceURL: baseServiceURL + "/v1/work-experiences",
+			EducationURL:      baseServiceURL + "/v1/education-records",
+			ProjectsURL:       baseServiceURL + "/v1/projects",
+			SkillsURL:         baseServiceURL + "/v1/skills",
+			CertificatesURL:   baseServiceURL + "/v1/certificates",
 		},
 		Summarizer: SummarizerConfig{
 			APIKey: env.GetString("OPENROUTER_API_KEY", ""),

@@ -18,7 +18,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(requests -> {
                     requests.requestMatchers("/error").permitAll();
-                    requests.requestMatchers("/v1/base/cv-generator-preference/**").authenticated();
+                    requests.requestMatchers("/v1/admin/**").authenticated();
+                    requests.requestMatchers("/healthz").permitAll();
                     requests.requestMatchers(HttpMethod.GET).permitAll();
                     // Envoy authorizes admin routes before they reach this service.
                     requests.anyRequest().authenticated();

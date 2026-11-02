@@ -24,7 +24,7 @@ func NewCacheController(service *service.Service) *CacheController {
 // @Produce  json
 // @Success 200 {object} model.SuccessResponse "Cache cleared successfully"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /v1/album/cache [delete]
+// @Router /v1/admin/albums/cache [delete]
 // @Security ApiKeyAuth
 func (ctrl *CacheController) ClearCache(c *gin.Context) {
 

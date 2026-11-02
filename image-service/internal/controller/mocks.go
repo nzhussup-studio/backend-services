@@ -62,7 +62,23 @@ func (m *MockAlbumService) GetAlbum(c *gin.Context, id string) (*model.Album, er
 	return nil, args.Error(1)
 }
 
+func (m *MockAlbumService) GetPublicAlbum(c *gin.Context, id string) (*model.Album, error) {
+	args := m.Called(c, id)
+	if album, ok := args.Get(0).(*model.Album); ok {
+		return album, args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func (m *MockAlbumService) GetAlbumsPreview(typeQuery string) ([]*model.AlbumPreview, error) {
+	args := m.Called(typeQuery)
+	if albums, ok := args.Get(0).([]*model.AlbumPreview); ok {
+		return albums, args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockAlbumService) GetPublicAlbumsPreview(typeQuery string) ([]*model.AlbumPreview, error) {
 	args := m.Called(typeQuery)
 	if albums, ok := args.Get(0).([]*model.AlbumPreview); ok {
 		return albums, args.Error(1)

@@ -125,7 +125,7 @@ info:
   title: Image Service API
   version: 1.0.0
 paths:
-  /v1/album:
+  /v1/admin/albums:
     get:
       description: Returns a preview list of albums, filtered by type
       parameters:
@@ -218,7 +218,7 @@ paths:
       summary: Create a new album
       tags:
       - Album
-  /v1/album/{id}:
+  /v1/admin/albums/{id}:
     delete:
       description: Deletes the album and all associated data
       parameters:
@@ -341,7 +341,59 @@ paths:
       summary: Update an album
       tags:
       - Album
-  /v1/album/{id}/{imageID}:
+  /v1/admin/albums/{id}/images:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload one or more image files to the specified album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Image file(s) to upload
+        in: formData
+        items:
+          type: file
+        name: file
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Upload accepted for background processing
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.UploadJob'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorDetails'
+        "404":
+          description: Album Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorDetails'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/model.ErrorDetails'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorDetails'
+      security:
+      - ApiKeyAuth: []
+      summary: Upload image(s) to an album
+      tags:
+      - Image
+  /v1/admin/albums/{id}/images/{imageID}:
     delete:
       description: Deletes an image by ID from the given album
       parameters:
@@ -413,7 +465,6 @@ paths:
       summary: Serve an image file
       tags:
       - Image
-  /v1/album/{id}/{imageID}/rename:
     patch:
       description: Renames a specific image in an album to a new valid name (alphanumeric,
         no path components)
@@ -466,59 +517,7 @@ paths:
       summary: Rename an image in an album
       tags:
       - Image
-  /v1/album/{id}/upload:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload one or more image files to the specified album
-      parameters:
-      - description: Album ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: Image file(s) to upload
-        in: formData
-        items:
-          type: file
-        name: file
-        required: true
-        type: array
-      produces:
-      - application/json
-      responses:
-        "202":
-          description: Upload accepted for background processing
-          schema:
-            allOf:
-            - $ref: '#/definitions/model.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/service.UploadJob'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/model.ErrorDetails'
-        "404":
-          description: Album Not Found
-          schema:
-            $ref: '#/definitions/model.ErrorDetails'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/model.ErrorDetails'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.ErrorDetails'
-      security:
-      - ApiKeyAuth: []
-      summary: Upload image(s) to an album
-      tags:
-      - Image
-  /v1/album/{id}/upload/{jobID}:
+  /v1/admin/albums/{id}/uploads/{jobID}:
     get:
       description: Returns progress and final result for a background image upload
       parameters:
@@ -553,7 +552,7 @@ paths:
       summary: Get upload job status
       tags:
       - Image
-  /v1/album/cache:
+  /v1/admin/albums/cache:
     delete:
       consumes:
       - application/json
@@ -574,19 +573,79 @@ paths:
       summary: Clear the image cache
       tags:
       - Cache
-  /v1/album/health:
+  /v1/albums:
     get:
-      description: Returns 200 OK if the service is up
       produces:
       - application/json
       responses:
         "200":
-          description: Service is healthy
+          description: OK
           schema:
-            $ref: '#/definitions/model.SuccessResponse'
-      summary: Health check endpoint
+            allOf:
+            - $ref: '#/definitions/model.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.AlbumPreview'
+                  type: array
+              type: object
+      summary: List public albums
       tags:
-      - Health
+      - Public Album
+  /v1/albums/{id}:
+    get:
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/model.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Album'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get a publicly accessible album
+      tags:
+      - Public Album
+  /v1/albums/{id}/images/{imageID}:
+    get:
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Serve an image from a public or semi-public album
+      tags:
+      - Public Image
 securityDefinitions:
   ApiKeyAuth:
     in: header

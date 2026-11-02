@@ -1,7 +1,6 @@
 package main
 
 import (
-	"image-service/internal/auth"
 	"image-service/internal/cache"
 	appconfig "image-service/internal/config"
 	"image-service/internal/controller"
@@ -20,38 +19,14 @@ func init() {
 }
 
 type app struct {
-	config         *appconfig.Config
-	protectedReads *auth.ProtectedReadRules
-	Controller     *controller.Controller
-	Service        *service.Service
-	Storage        *repository.Storage
-	Redis          *cache.RedisClient
+	config     *appconfig.Config
+	Controller *controller.Controller
+	Service    *service.Service
+	Storage    *repository.Storage
+	Redis      *cache.RedisClient
 }
 
 func newApp(config *appconfig.Config) *app {
-	protectedReads := &auth.ProtectedReadRules{
-		Rules: []auth.ProtectedReadRule{
-			{
-				Path: config.API.BasePath,
-				QueryParams: map[string]string{
-					"type": "private",
-				},
-			},
-			{
-				Path: config.API.BasePath,
-				QueryParams: map[string]string{
-					"type": "semi-public",
-				},
-			},
-			{
-				Path: config.API.BasePath,
-				QueryParams: map[string]string{
-					"type": "all",
-				},
-			},
-		},
-	}
-
 	redisClient := cache.NewRedisClient(
 		config.Redis.Addr,
 		config.Redis.Password,
@@ -63,12 +38,11 @@ func newApp(config *appconfig.Config) *app {
 	controller := controller.NewController(service)
 
 	return &app{
-		config:         config,
-		protectedReads: protectedReads,
-		Controller:     controller,
-		Service:        service,
-		Storage:        storage,
-		Redis:          redisClient,
+		config:     config,
+		Controller: controller,
+		Service:    service,
+		Storage:    storage,
+		Redis:      redisClient,
 	}
 }
 

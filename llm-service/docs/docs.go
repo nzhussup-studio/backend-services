@@ -22,7 +22,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/llm/configuration": {
+        "/v1/admin/llm/configuration": {
             "get": {
                 "description": "Returns active runtime LLM settings such as model, prompts, and parallel generation flag.",
                 "produces": [
@@ -80,34 +80,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/llm/health": {
-            "get": {
-                "description": "Checks the connectivity and health of dependent services, particularly Redis.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Health check endpoint",
-                "responses": {
-                    "200": {
-                        "description": "Status OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.APIResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Redis connection failed",
-                        "schema": {
-                            "$ref": "#/definitions/dto.APIResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/llm/summarize": {
-            "get": {
+        "/v1/llm/summaries": {
+            "post": {
                 "description": "Retrieves structured personal data (e.g., work experience, education), generates a professional summary using a large language model (LLM), and returns it in the requested language.",
                 "produces": [
                     "application/json"

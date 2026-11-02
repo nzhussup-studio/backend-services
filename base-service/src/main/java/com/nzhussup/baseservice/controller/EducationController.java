@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(AppConfig.baseApiPath+"education")
+@RequestMapping(AppConfig.adminApiPath + "education-records")
 public class EducationController extends BaseController<Education>{
 
     @Autowired

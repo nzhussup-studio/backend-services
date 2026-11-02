@@ -14,7 +14,6 @@ import (
 // @Produce      json
 // @Success      200  {object}  dto.APIResponse  "Status OK"
 // @Failure      500  {object}  dto.APIResponse  "Redis connection failed"
-// @Router       /v1/llm/health [get]
 func (h *Handler) GetHealth(ctx *gin.Context) {
 
 	if err := h.redis.Ping(); err != nil {

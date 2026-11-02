@@ -31,9 +31,12 @@ public class BaseController<T extends Identifiable> {
         }
     }
 
-    @PutMapping
-    public ResponseEntity<T> update(@RequestBody T entity) {
+    @PutMapping("/{id}")
+    public ResponseEntity<T> update(@PathVariable Long id, @RequestBody T entity) {
         try {
+            if (entity.getId() == null || !id.equals(entity.getId())) {
+                return ResponseEntity.badRequest().body(null);
+            }
             T updatedEntity = service.update(entity);
             return ResponseEntity.ok(updatedEntity);
         } catch (Exception e) {
@@ -41,10 +44,10 @@ public class BaseController<T extends Identifiable> {
         }
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> delete(@RequestBody T entity) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         try {
-            service.delete(entity.getId());
+            service.delete(id);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);

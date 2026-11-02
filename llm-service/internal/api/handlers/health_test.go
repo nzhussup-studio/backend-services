@@ -36,9 +36,9 @@ func TestGetHealth(t *testing.T) {
 			h := New(&configs.Config{}, &healthCacheMock{pingErr: tt.pingErr})
 
 			r := gin.New()
-			r.GET("/health", h.GetHealth)
+			r.GET("/healthz", h.GetHealth)
 
-			req := httptest.NewRequest(http.MethodGet, "/health", nil)
+			req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 			rec := httptest.NewRecorder()
 			r.ServeHTTP(rec, req)
 

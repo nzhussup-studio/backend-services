@@ -34,7 +34,7 @@ var validTypes = map[string]bool{
 // @Failure 403 {object} model.ErrorResponse "Forbidden"
 // @Failure 404 {object} model.ErrorResponse "Not Found"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /v1/album/{id} [get]
+// @Router /v1/admin/albums/{id} [get]
 // @Security ApiKeyAuth
 func (ctrl *AlbumController) Get(c *gin.Context) {
 	pathParam := c.Param("id")
@@ -51,6 +51,26 @@ func (ctrl *AlbumController) Get(c *gin.Context) {
 	json.ConstructJsonResponseSuccess(c, album, http.StatusOK)
 }
 
+// GetPublic godoc
+// @Summary Get a publicly accessible album
+// @Tags Public Album
+// @Produce json
+// @Param id path string true "Album ID"
+// @Success 200 {object} model.SuccessResponse{data=model.Album}
+// @Failure 404 {object} model.ErrorResponse
+// @Router /v1/albums/{id} [get]
+func (ctrl *AlbumController) GetPublic(c *gin.Context) {
+	album, err := ctrl.service.AlbumService.GetPublicAlbum(c, c.Param("id"))
+	if err != nil {
+		custom_errors.MapErrors(c, err)
+		return
+	}
+	if album.Images == nil {
+		album.Images = []*model.Image{}
+	}
+	json.ConstructJsonResponseSuccess(c, album, http.StatusOK)
+}
+
 // GetPreview godoc
 // @Summary Get album previews
 // @Description Returns a preview list of albums, filtered by type
@@ -62,7 +82,7 @@ func (ctrl *AlbumController) Get(c *gin.Context) {
 // @Failure 401 {object} model.ErrorResponse "Unauthorized"
 // @Failure 403 {object} model.ErrorResponse "Forbidden"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /v1/album [get]
+// @Router /v1/admin/albums [get]
 // @Security ApiKeyAuth
 func (ctrl *AlbumController) GetPreview(c *gin.Context) {
 	typeQuery := c.DefaultQuery("type", "public")
@@ -74,6 +94,25 @@ func (ctrl *AlbumController) GetPreview(c *gin.Context) {
 
 	album, err := ctrl.service.AlbumService.GetAlbumsPreview(typeQuery)
 
+	if err != nil {
+		custom_errors.MapErrors(c, err)
+		return
+	}
+	if album == nil {
+		album = []*model.AlbumPreview{}
+	}
+	json.ConstructJsonResponseSuccess(c, album, http.StatusOK)
+}
+
+// GetPublicPreview godoc
+// @Summary List public albums
+// @Tags Public Album
+// @Produce json
+// @Success 200 {object} model.SuccessResponse{data=[]model.AlbumPreview}
+// @Router /v1/albums [get]
+func (ctrl *AlbumController) GetPublicPreview(c *gin.Context) {
+	typeQuery := c.DefaultQuery("type", "public")
+	album, err := ctrl.service.AlbumService.GetPublicAlbumsPreview(typeQuery)
 	if err != nil {
 		custom_errors.MapErrors(c, err)
 		return
@@ -96,7 +135,7 @@ func (ctrl *AlbumController) GetPreview(c *gin.Context) {
 // @Failure 404 {object} model.ErrorResponse "Not Found"
 // @Failure 409 {object} model.ErrorResponse "Conflict"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /v1/album [post]
+// @Router /v1/admin/albums [post]
 // @Security ApiKeyAuth
 func (ctrl *AlbumController) Create(c *gin.Context) {
 	var request model.AlbumPreview
@@ -125,7 +164,7 @@ func (ctrl *AlbumController) Create(c *gin.Context) {
 // @Failure 400 {object} model.ErrorResponse "Bad Request"
 // @Failure 404 {object} model.ErrorResponse "Not Found"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /v1/album/{id} [delete]
+// @Router /v1/admin/albums/{id} [delete]
 // @Security ApiKeyAuth
 func (ctrl *AlbumController) Delete(c *gin.Context) {
 	pathParam := c.Param("id")
@@ -150,7 +189,7 @@ func (ctrl *AlbumController) Delete(c *gin.Context) {
 // @Failure 400 {object} model.ErrorResponse "Bad Request"
 // @Failure 404 {object} model.ErrorResponse "Not Found"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /v1/album/{id} [put]
+// @Router /v1/admin/albums/{id} [put]
 // @Security ApiKeyAuth
 func (ctrl *AlbumController) Update(c *gin.Context) {
 	var request model.AlbumPreview

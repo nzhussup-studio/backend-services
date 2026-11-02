@@ -14,7 +14,6 @@ import (
 // @Tags Health
 // @Produce json
 // @Success 200 {object} model.SuccessResponse "Service is healthy"
-// @Router /v1/account/health [get]
 func HealthCheckHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, model.SuccessResponse{Message: "OK"})
 }

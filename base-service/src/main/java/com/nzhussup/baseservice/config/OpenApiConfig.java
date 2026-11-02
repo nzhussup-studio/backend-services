@@ -47,12 +47,12 @@ public class OpenApiConfig {
     }
 
     private String extractResourceName(String path) {
-        String basePath = "/" + AppConfig.baseApiPath;
-        if (!path.startsWith(basePath)) {
+        if (!path.startsWith("/v1/")) {
             return null;
         }
 
-        String resourcePath = path.substring(basePath.length());
+        boolean admin = path.startsWith(AppConfig.adminApiPath);
+        String resourcePath = path.substring(admin ? AppConfig.adminApiPath.length() : "/v1/".length());
         int slashIndex = resourcePath.indexOf('/');
         if (slashIndex >= 0) {
             resourcePath = resourcePath.substring(0, slashIndex);
@@ -62,7 +62,7 @@ public class OpenApiConfig {
             return null;
         }
 
-        return toPascalCase(resourcePath);
+        return (admin ? "Admin" : "") + toPascalCase(resourcePath);
     }
 
     private String toPascalCase(String value) {

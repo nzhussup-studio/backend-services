@@ -12,10 +12,9 @@ import (
 func (a *app) GetRouter() *gin.Engine {
 	router := gin.Default()
 
-	router.GET("/health", controller.HealthCheckHandler)
+	router.GET("/healthz", controller.HealthCheckHandler)
 
-	v1 := router.Group(a.config.apiBasePath)
-	v1.GET("/health", controller.HealthCheckHandler)
+	v1 := router.Group("/v1/me/account")
 	v1.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	v1.Use(security.TrustedIdentityMiddleware())
 	v1.DELETE("", a.controller.DeleteCurrentAccount)

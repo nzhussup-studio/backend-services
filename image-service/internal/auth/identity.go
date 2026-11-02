@@ -33,32 +33,3 @@ func firstNonEmpty(values ...string) string {
 	}
 	return "unknown"
 }
-
-// RequiresIdentity reports whether this request is one of the protected reads.
-// Other protected routes are guarded by the middleware unconditionally.
-func RequiresIdentity(c *gin.Context, rules []ProtectedReadRule) bool {
-	requestPath := c.Request.URL.Path
-	for _, rule := range rules {
-		if rule.Path != requestPath {
-			continue
-		}
-		match := true
-		for key, val := range rule.QueryParams {
-			if c.Query(key) != val {
-				match = false
-				break
-			}
-		}
-		if match {
-			return true
-		}
-	}
-	return false
-}
-
-// RequireIdentity verifies a gateway-injected identity for a request that Envoy
-// has already authorized.
-func RequireIdentity(c *gin.Context) error {
-	_, err := IdentityFromHeaders(c)
-	return err
-}

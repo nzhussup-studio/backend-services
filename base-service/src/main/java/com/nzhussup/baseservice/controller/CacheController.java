@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(AppConfig.baseApiPath+"cache")
+@RequestMapping(AppConfig.adminApiPath + "cache")
 public class CacheController {
 
     private final CacheManager cacheManager;
@@ -19,7 +19,7 @@ public class CacheController {
         this.cacheManager = cacheManager;
     }
 
-    @PostMapping("/clearGlobalCache")
+    @PostMapping("/invalidate")
     public ResponseEntity<String> clearGlobalCache() {
         cacheManager.getCacheNames().forEach(cacheName -> {
             var cache = cacheManager.getCache(cacheName);

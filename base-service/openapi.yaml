@@ -4,56 +4,18 @@ info:
   title: OpenAPI definition
   version: v0
 paths:
-  "/v1/base/health":
-    get:
-      tags:
-      - health-controller
-      summary: Health check endpoint
-      operationId: health
-      responses:
-        '200':
-          description: Service is healthy
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: string
-  "/v1/base/work-experience":
-    get:
-      tags:
-      - work-experience-controller
-      operationId: listWorkExperience
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: array
-                items:
-                  type: object
+  "/v1/admin/work-experiences/{id}":
     put:
       tags:
       - work-experience-controller
-      operationId: updateWorkExperience
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/WorkExperience"
+      operationId: updateAdminWorkExperiences
+      parameters:
+      - name: id
+        in: path
         required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/WorkExperience"
-    post:
-      tags:
-      - work-experience-controller
-      operationId: createWorkExperience
+        schema:
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
@@ -70,7 +32,220 @@ paths:
     delete:
       tags:
       - work-experience-controller
-      operationId: deleteWorkExperience
+      operationId: deleteAdminWorkExperiences
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/skills/{id}":
+    put:
+      tags:
+      - skill-controller
+      operationId: updateAdminSkills
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Skill"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Skill"
+    delete:
+      tags:
+      - skill-controller
+      operationId: deleteAdminSkills
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/projects/{id}":
+    put:
+      tags:
+      - project-controller
+      operationId: updateAdminProjects
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Project"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Project"
+    delete:
+      tags:
+      - project-controller
+      operationId: deleteAdminProjects
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/education-records/{id}":
+    put:
+      tags:
+      - education-controller
+      operationId: updateAdminEducationRecords
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Education"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Education"
+    delete:
+      tags:
+      - education-controller
+      operationId: deleteAdminEducationRecords
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/cv-generator-preferences":
+    get:
+      tags:
+      - cv-generator-preference-controller
+      operationId: listAdminCvGeneratorPreferences
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/CvGeneratorPreference"
+    put:
+      tags:
+      - cv-generator-preference-controller
+      operationId: updateAdminCvGeneratorPreferences
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CvGeneratorPreference"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/CvGeneratorPreference"
+  "/v1/admin/certificates/{id}":
+    put:
+      tags:
+      - certificate-controller
+      operationId: updateAdminCertificates
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Certificate"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/Certificate"
+    delete:
+      tags:
+      - certificate-controller
+      operationId: deleteAdminCertificates
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/work-experiences":
+    get:
+      tags:
+      - work-experience-controller
+      operationId: listAdminWorkExperiences
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    post:
+      tags:
+      - work-experience-controller
+      operationId: createAdminWorkExperiences
       requestBody:
         content:
           application/json:
@@ -80,11 +255,15 @@ paths:
       responses:
         '200':
           description: OK
-  "/v1/base/skill":
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/WorkExperience"
+  "/v1/admin/skills":
     get:
       tags:
       - skill-controller
-      operationId: listSkill
+      operationId: listAdminSkills
       responses:
         '200':
           description: OK
@@ -94,10 +273,10 @@ paths:
                 type: array
                 items:
                   type: object
-    put:
+    post:
       tags:
       - skill-controller
-      operationId: updateSkill
+      operationId: createAdminSkills
       requestBody:
         content:
           application/json:
@@ -111,41 +290,11 @@ paths:
             "*/*":
               schema:
                 "$ref": "#/components/schemas/Skill"
-    post:
-      tags:
-      - skill-controller
-      operationId: createSkill
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Skill"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/Skill"
-    delete:
-      tags:
-      - skill-controller
-      operationId: deleteSkill
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Skill"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/project":
+  "/v1/admin/projects":
     get:
       tags:
       - project-controller
-      operationId: listProject
+      operationId: listAdminProjects
       responses:
         '200':
           description: OK
@@ -155,10 +304,10 @@ paths:
                 type: array
                 items:
                   type: object
-    put:
+    post:
       tags:
       - project-controller
-      operationId: updateProject
+      operationId: createAdminProjects
       requestBody:
         content:
           application/json:
@@ -172,41 +321,11 @@ paths:
             "*/*":
               schema:
                 "$ref": "#/components/schemas/Project"
-    post:
-      tags:
-      - project-controller
-      operationId: createProject
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Project"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/Project"
-    delete:
-      tags:
-      - project-controller
-      operationId: deleteProject
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Project"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/education":
+  "/v1/admin/education-records":
     get:
       tags:
       - education-controller
-      operationId: listEducation
+      operationId: listAdminEducationRecords
       responses:
         '200':
           description: OK
@@ -216,10 +335,10 @@ paths:
                 type: array
                 items:
                   type: object
-    put:
+    post:
       tags:
       - education-controller
-      operationId: updateEducation
+      operationId: createAdminEducationRecords
       requestBody:
         content:
           application/json:
@@ -233,41 +352,11 @@ paths:
             "*/*":
               schema:
                 "$ref": "#/components/schemas/Education"
-    post:
-      tags:
-      - education-controller
-      operationId: createEducation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Education"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/Education"
-    delete:
-      tags:
-      - education-controller
-      operationId: deleteEducation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Education"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/cv-generator-preference":
+  "/v1/admin/certificates":
     get:
       tags:
-      - cv-generator-preference-controller
-      operationId: listCvGeneratorPreference
+      - certificate-controller
+      operationId: listAdminCertificates
       responses:
         '200':
           description: OK
@@ -277,71 +366,10 @@ paths:
                 type: array
                 items:
                   type: object
-    put:
-      tags:
-      - cv-generator-preference-controller
-      operationId: updateCvGeneratorPreference
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/CvGeneratorPreference"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/CvGeneratorPreference"
     post:
       tags:
-      - cv-generator-preference-controller
-      operationId: createCvGeneratorPreference
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/CvGeneratorPreference"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/CvGeneratorPreference"
-    delete:
-      tags:
-      - cv-generator-preference-controller
-      operationId: deleteCvGeneratorPreference
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/CvGeneratorPreference"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/certificate":
-    get:
-      tags:
       - certificate-controller
-      operationId: listCertificate
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: array
-                items:
-                  type: object
-    put:
-      tags:
-      - certificate-controller
-      operationId: updateCertificate
+      operationId: createAdminCertificates
       requestBody:
         content:
           application/json:
@@ -355,41 +383,11 @@ paths:
             "*/*":
               schema:
                 "$ref": "#/components/schemas/Certificate"
-    post:
-      tags:
-      - certificate-controller
-      operationId: createCertificate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Certificate"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/Certificate"
-    delete:
-      tags:
-      - certificate-controller
-      operationId: deleteCertificate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/Certificate"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/cache/clearGlobalCache":
+  "/v1/admin/cache/invalidate":
     post:
       tags:
       - cache-controller
-      operationId: createCache
+      operationId: createAdminCache
       responses:
         '200':
           description: OK
@@ -397,6 +395,76 @@ paths:
             "*/*":
               schema:
                 type: string
+  "/v1/work-experiences":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listWorkExperiences
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/WorkExperience"
+  "/v1/skills":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listSkills
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Skill"
+  "/v1/projects":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listProjects
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Project"
+  "/v1/education-records":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listEducationRecords
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Education"
+  "/v1/certificates":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listCertificates
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Certificate"
 components:
   schemas:
     WorkExperience:

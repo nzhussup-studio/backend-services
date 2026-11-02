@@ -43,7 +43,7 @@ func New(config *configs.Config, redis Cache) *Handler {
 // @Success      200   {object}  dto.APIResponse  "Generated professional summary"
 // @Failure      400   {object}  dto.APIResponse  "Invalid query parameters"
 // @Failure      500   {object}  dto.APIResponse  "Internal server error with error details"
-// @Router       /v1/llm/summarize [get]
+// @Router       /v1/llm/summaries [post]
 func (h *Handler) GetSummarizer(ctx *gin.Context) {
 	var query dto.SummarizeQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {

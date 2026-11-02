@@ -14,7 +14,7 @@ import (
 // @Tags         configuration
 // @Produce      json
 // @Success      200  {object}  dto.ConfigurationResponse  "Current configuration"
-// @Router       /v1/llm/configuration [get]
+// @Router       /v1/admin/llm/configuration [get]
 func (h *Handler) GetConfiguration(ctx *gin.Context) {
 	cfg := summarizer.GetRuntimeConfig()
 	ctx.JSON(http.StatusOK, dto.ConfigurationResponse{
@@ -36,7 +36,7 @@ func (h *Handler) GetConfiguration(ctx *gin.Context) {
 // @Param        request  body      dto.ConfigurationRequest  true  "Configuration overrides"
 // @Success      200      {object}  dto.ConfigurationResponse "Updated configuration"
 // @Failure      400      {object}  dto.APIResponse           "Invalid configuration payload"
-// @Router       /v1/llm/configuration [put]
+// @Router       /v1/admin/llm/configuration [put]
 func (h *Handler) PutConfiguration(ctx *gin.Context) {
 	var req dto.ConfigurationRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

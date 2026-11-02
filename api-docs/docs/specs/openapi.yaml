@@ -4,56 +4,18 @@ info:
   title: Backend Services API
   version: 1.0.0
 paths:
-  "/v1/base/health":
-    get:
-      tags:
-      - health-controller
-      summary: Base Service health check
-      operationId: baseServiceHealth
-      responses:
-        '200':
-          description: Service is healthy
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: string
-  "/v1/base/work-experience":
-    get:
-      tags:
-      - work-experience-controller
-      operationId: listWorkExperience
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: array
-                items:
-                  type: object
+  "/v1/admin/work-experiences/{id}":
     put:
       tags:
       - work-experience-controller
-      operationId: updateWorkExperience
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_WorkExperience"
+      operationId: updateAdminWorkExperiences
+      parameters:
+      - name: id
+        in: path
         required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/base_service_WorkExperience"
-    post:
-      tags:
-      - work-experience-controller
-      operationId: createWorkExperience
+        schema:
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
@@ -70,7 +32,220 @@ paths:
     delete:
       tags:
       - work-experience-controller
-      operationId: deleteWorkExperience
+      operationId: deleteAdminWorkExperiences
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/skills/{id}":
+    put:
+      tags:
+      - skill-controller
+      operationId: updateAdminSkills
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Skill"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Skill"
+    delete:
+      tags:
+      - skill-controller
+      operationId: deleteAdminSkills
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/projects/{id}":
+    put:
+      tags:
+      - project-controller
+      operationId: updateAdminProjects
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Project"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Project"
+    delete:
+      tags:
+      - project-controller
+      operationId: deleteAdminProjects
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/education-records/{id}":
+    put:
+      tags:
+      - education-controller
+      operationId: updateAdminEducationRecords
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Education"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Education"
+    delete:
+      tags:
+      - education-controller
+      operationId: deleteAdminEducationRecords
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/cv-generator-preferences":
+    get:
+      tags:
+      - cv-generator-preference-controller
+      operationId: listAdminCvGeneratorPreferences
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_CvGeneratorPreference"
+    put:
+      tags:
+      - cv-generator-preference-controller
+      operationId: updateAdminCvGeneratorPreferences
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_CvGeneratorPreference"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_CvGeneratorPreference"
+  "/v1/admin/certificates/{id}":
+    put:
+      tags:
+      - certificate-controller
+      operationId: updateAdminCertificates
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/base_service_Certificate"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_Certificate"
+    delete:
+      tags:
+      - certificate-controller
+      operationId: deleteAdminCertificates
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+  "/v1/admin/work-experiences":
+    get:
+      tags:
+      - work-experience-controller
+      operationId: listAdminWorkExperiences
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  type: object
+    post:
+      tags:
+      - work-experience-controller
+      operationId: createAdminWorkExperiences
       requestBody:
         content:
           application/json:
@@ -80,11 +255,15 @@ paths:
       responses:
         '200':
           description: OK
-  "/v1/base/skill":
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/base_service_WorkExperience"
+  "/v1/admin/skills":
     get:
       tags:
       - skill-controller
-      operationId: listSkill
+      operationId: listAdminSkills
       responses:
         '200':
           description: OK
@@ -94,10 +273,10 @@ paths:
                 type: array
                 items:
                   type: object
-    put:
+    post:
       tags:
       - skill-controller
-      operationId: updateSkill
+      operationId: createAdminSkills
       requestBody:
         content:
           application/json:
@@ -111,41 +290,11 @@ paths:
             "*/*":
               schema:
                 "$ref": "#/components/schemas/base_service_Skill"
-    post:
-      tags:
-      - skill-controller
-      operationId: createSkill
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_Skill"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/base_service_Skill"
-    delete:
-      tags:
-      - skill-controller
-      operationId: deleteSkill
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_Skill"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/project":
+  "/v1/admin/projects":
     get:
       tags:
       - project-controller
-      operationId: listProject
+      operationId: listAdminProjects
       responses:
         '200':
           description: OK
@@ -155,10 +304,10 @@ paths:
                 type: array
                 items:
                   type: object
-    put:
+    post:
       tags:
       - project-controller
-      operationId: updateProject
+      operationId: createAdminProjects
       requestBody:
         content:
           application/json:
@@ -172,41 +321,11 @@ paths:
             "*/*":
               schema:
                 "$ref": "#/components/schemas/base_service_Project"
-    post:
-      tags:
-      - project-controller
-      operationId: createProject
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_Project"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/base_service_Project"
-    delete:
-      tags:
-      - project-controller
-      operationId: deleteProject
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_Project"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/education":
+  "/v1/admin/education-records":
     get:
       tags:
       - education-controller
-      operationId: listEducation
+      operationId: listAdminEducationRecords
       responses:
         '200':
           description: OK
@@ -216,10 +335,10 @@ paths:
                 type: array
                 items:
                   type: object
-    put:
+    post:
       tags:
       - education-controller
-      operationId: updateEducation
+      operationId: createAdminEducationRecords
       requestBody:
         content:
           application/json:
@@ -233,41 +352,11 @@ paths:
             "*/*":
               schema:
                 "$ref": "#/components/schemas/base_service_Education"
-    post:
-      tags:
-      - education-controller
-      operationId: createEducation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_Education"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/base_service_Education"
-    delete:
-      tags:
-      - education-controller
-      operationId: deleteEducation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_Education"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/cv-generator-preference":
+  "/v1/admin/certificates":
     get:
       tags:
-      - cv-generator-preference-controller
-      operationId: listCvGeneratorPreference
+      - certificate-controller
+      operationId: listAdminCertificates
       responses:
         '200':
           description: OK
@@ -277,71 +366,10 @@ paths:
                 type: array
                 items:
                   type: object
-    put:
-      tags:
-      - cv-generator-preference-controller
-      operationId: updateCvGeneratorPreference
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_CvGeneratorPreference"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/base_service_CvGeneratorPreference"
     post:
       tags:
-      - cv-generator-preference-controller
-      operationId: createCvGeneratorPreference
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_CvGeneratorPreference"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/base_service_CvGeneratorPreference"
-    delete:
-      tags:
-      - cv-generator-preference-controller
-      operationId: deleteCvGeneratorPreference
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_CvGeneratorPreference"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/certificate":
-    get:
-      tags:
       - certificate-controller
-      operationId: listCertificate
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: array
-                items:
-                  type: object
-    put:
-      tags:
-      - certificate-controller
-      operationId: updateCertificate
+      operationId: createAdminCertificates
       requestBody:
         content:
           application/json:
@@ -355,41 +383,11 @@ paths:
             "*/*":
               schema:
                 "$ref": "#/components/schemas/base_service_Certificate"
-    post:
-      tags:
-      - certificate-controller
-      operationId: createCertificate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_Certificate"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            "*/*":
-              schema:
-                "$ref": "#/components/schemas/base_service_Certificate"
-    delete:
-      tags:
-      - certificate-controller
-      operationId: deleteCertificate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/base_service_Certificate"
-        required: true
-      responses:
-        '200':
-          description: OK
-  "/v1/base/cache/clearGlobalCache":
+  "/v1/admin/cache/invalidate":
     post:
       tags:
       - cache-controller
-      operationId: createCache
+      operationId: createAdminCache
       responses:
         '200':
           description: OK
@@ -397,7 +395,77 @@ paths:
             "*/*":
               schema:
                 type: string
-  "/v1/album":
+  "/v1/work-experiences":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listWorkExperiences
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/base_service_WorkExperience"
+  "/v1/skills":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listSkills
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/base_service_Skill"
+  "/v1/projects":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listProjects
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/base_service_Project"
+  "/v1/education-records":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listEducationRecords
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/base_service_Education"
+  "/v1/certificates":
+    get:
+      tags:
+      - public-content-controller
+      operationId: listCertificates
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/base_service_Certificate"
+  "/v1/admin/albums":
     get:
       description: Returns a preview list of albums, filtered by type
       responses:
@@ -505,7 +573,7 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/image_service_model.AlbumPreview"
-  "/v1/album/{id}":
+  "/v1/admin/albums/{id}":
     delete:
       description: Deletes the album and all associated data
       responses:
@@ -652,7 +720,73 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/image_service_model.AlbumPreview"
-  "/v1/album/{id}/{imageID}":
+  "/v1/admin/albums/{id}/images":
+    post:
+      description: Upload one or more image files to the specified album
+      responses:
+        '202':
+          description: Upload accepted for background processing
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/image_service_service.UploadJob"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '404':
+          description: Album Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
+      security:
+      - image_service_ApiKeyAuth: []
+      summary: Upload image(s) to an album
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: array
+                  description: Image file(s) to upload
+                  items:
+                    type: string
+                    format: binary
+              required:
+              - file
+  "/v1/admin/albums/{id}/images/{imageID}":
     delete:
       description: Deletes an image by ID from the given album
       responses:
@@ -737,7 +871,6 @@ paths:
         required: true
         schema:
           type: string
-  "/v1/album/{id}/{imageID}/rename":
     patch:
       description: Renames a specific image in an album to a new valid name (alphanumeric,
         no path components)
@@ -801,73 +934,7 @@ paths:
         required: true
         schema:
           type: string
-  "/v1/album/{id}/upload":
-    post:
-      description: Upload one or more image files to the specified album
-      responses:
-        '202':
-          description: Upload accepted for background processing
-          content:
-            application/json:
-              schema:
-                allOf:
-                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
-                - properties:
-                    data:
-                      "$ref": "#/components/schemas/image_service_service.UploadJob"
-                  type: object
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
-        '404':
-          description: Album Not Found
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
-        '409':
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/image_service_model.ErrorDetails"
-      security:
-      - image_service_ApiKeyAuth: []
-      summary: Upload image(s) to an album
-      tags:
-      - Image
-      parameters:
-      - description: Album ID
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: array
-                  description: Image file(s) to upload
-                  items:
-                    type: string
-                    format: binary
-              required:
-              - file
-  "/v1/album/{id}/upload/{jobID}":
+  "/v1/admin/albums/{id}/uploads/{jobID}":
     get:
       description: Returns progress and final result for a background image upload
       responses:
@@ -906,7 +973,7 @@ paths:
         required: true
         schema:
           type: string
-  "/v1/album/cache":
+  "/v1/admin/albums/cache":
     delete:
       description: This endpoint clears the server-side cache for images.
       responses:
@@ -927,20 +994,88 @@ paths:
       summary: Clear the image cache
       tags:
       - Cache
-  "/v1/album/health":
+  "/v1/albums":
     get:
-      description: Returns 200 OK if the service is up
       responses:
         '200':
-          description: Service is healthy
+          description: OK
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/image_service_model.SuccessResponse"
-      summary: Health check endpoint
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      items:
+                        "$ref": "#/components/schemas/image_service_model.AlbumPreview"
+                      type: array
+                  type: object
+      summary: List public albums
       tags:
-      - Health
-  "/v1/llm/configuration":
+      - Public Album
+  "/v1/albums/{id}":
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/image_service_model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/image_service_model.Album"
+                  type: object
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+      summary: Get a publicly accessible album
+      tags:
+      - Public Album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+  "/v1/albums/{id}/images/{imageID}":
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Not Found
+          content:
+            application/octet-stream:
+              schema:
+                "$ref": "#/components/schemas/image_service_model.ErrorResponse"
+      summary: Serve an image from a public or semi-public album
+      tags:
+      - Public Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        schema:
+          type: string
+  "/v1/admin/llm/configuration":
     get:
       description: Returns active runtime LLM settings such as model, prompts, and
         parallel generation flag.
@@ -980,28 +1115,8 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/llm_service_dto.ConfigurationRequest"
-  "/v1/llm/health":
-    get:
-      description: Checks the connectivity and health of dependent services, particularly
-        Redis.
-      responses:
-        '200':
-          description: Status OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/llm_service_dto.APIResponse"
-        '500':
-          description: Redis connection failed
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/llm_service_dto.APIResponse"
-      summary: Health check endpoint
-      tags:
-      - health
-  "/v1/llm/summarize":
-    get:
+  "/v1/llm/summaries":
+    post:
       description: Retrieves structured personal data (e.g., work experience, education),
         generates a professional summary using a large language model (LLM), and returns
         it in the requested language.
@@ -1032,20 +1147,7 @@ paths:
         name: lang
         schema:
           type: string
-  "/v1/account/health":
-    get:
-      description: Returns 200 OK if the service is up
-      responses:
-        '200':
-          description: Service is healthy
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/account_service_model.SuccessResponse"
-      summary: Health check endpoint
-      tags:
-      - Health
-  "/v1/account":
+  "/v1/me/account":
     delete:
       description: Logs out and deletes the current Keycloak user identified by the
         bearer token subject.

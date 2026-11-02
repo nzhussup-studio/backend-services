@@ -28,7 +28,7 @@ func NewAccountController(service *service.AccountService) *AccountController {
 // @Failure 403 {object} model.ErrorResponse "Forbidden"
 // @Failure 404 {object} model.ErrorResponse "Not Found"
 // @Failure 500 {object} model.ErrorResponse "Internal Server Error"
-// @Router /v1/account [delete]
+// @Router /v1/me/account [delete]
 // @Security ApiKeyAuth
 func (ac *AccountController) DeleteCurrentAccount(c *gin.Context) {
 	subject, ok := c.Get("subject")

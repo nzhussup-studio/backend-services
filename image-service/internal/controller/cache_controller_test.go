@@ -21,9 +21,9 @@ func TestCacheController_ClearCache_Success(t *testing.T) {
 	svc := &service.Service{CacheService: mockService}
 	controller := NewCacheController(svc)
 
-	router.DELETE("/v1/album/cache", controller.ClearCache)
+	router.DELETE("/v1/admin/albums/cache", controller.ClearCache)
 
-	req, _ := http.NewRequest(http.MethodDelete, "/v1/album/cache", nil)
+	req, _ := http.NewRequest(http.MethodDelete, "/v1/admin/albums/cache", nil)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
@@ -41,9 +41,9 @@ func TestCacheController_ClearCache_Failure(t *testing.T) {
 	svc := &service.Service{CacheService: mockService}
 	controller := NewCacheController(svc)
 
-	router.DELETE("/v1/album/cache", controller.ClearCache)
+	router.DELETE("/v1/admin/albums/cache", controller.ClearCache)
 
-	req, _ := http.NewRequest(http.MethodDelete, "/v1/album/cache", nil)
+	req, _ := http.NewRequest(http.MethodDelete, "/v1/admin/albums/cache", nil)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 

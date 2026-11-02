@@ -26,7 +26,7 @@ type ImageController struct {
 // @Failure 404 {object} model.ErrorDetails "Album Not Found"
 // @Failure 409 {object} model.ErrorDetails "Conflict"
 // @Failure 500 {object} model.ErrorDetails "Internal Server Error"
-// @Router /v1/album/{id}/upload [post]
+// @Router /v1/admin/albums/{id}/images [post]
 // @Security ApiKeyAuth
 func (ctrl *ImageController) Upload(c *gin.Context) {
 	albumID := c.Param("id")
@@ -86,7 +86,7 @@ func (ctrl *ImageController) Upload(c *gin.Context) {
 // @Param jobID path string true "Upload job ID"
 // @Success 200 {object} model.SuccessResponse{data=service.UploadJob}
 // @Failure 404 {object} model.ErrorResponse "Upload job not found"
-// @Router /v1/album/{id}/upload/{jobID} [get]
+// @Router /v1/admin/albums/{id}/uploads/{jobID} [get]
 // @Security ApiKeyAuth
 func (ctrl *ImageController) UploadStatus(c *gin.Context) {
 	if ctrl.service.AsyncImageService == nil {
@@ -112,7 +112,7 @@ func (ctrl *ImageController) UploadStatus(c *gin.Context) {
 // @Failure 400 {object} model.ErrorDetails "Bad Request"
 // @Failure 404 {object} model.ErrorDetails "Image Not Found"
 // @Failure 500 {object} model.ErrorDetails "Internal Server Error"
-// @Router /v1/album/{id}/{imageID} [delete]
+// @Router /v1/admin/albums/{id}/images/{imageID} [delete]
 // @Security ApiKeyAuth
 func (ctrl *ImageController) Delete(c *gin.Context) {
 	albumID := c.Param("id")
@@ -135,7 +135,7 @@ func (ctrl *ImageController) Delete(c *gin.Context) {
 // @Param imageID path string true "Image ID"
 // @Success 200 {file} file "Image file"
 // @Failure 400 {object} model.ErrorDetails "Bad Request"
-// @Router /v1/album/{id}/{imageID} [get]
+// @Router /v1/admin/albums/{id}/images/{imageID} [get]
 // @Security ApiKeyAuth
 func (ctrl *ImageController) Serve(c *gin.Context) {
 	albumID := c.Param("id")
@@ -146,6 +146,29 @@ func (ctrl *ImageController) Serve(c *gin.Context) {
 		return
 	}
 
+	c.File(imagePath)
+}
+
+// ServePublic godoc
+// @Summary Serve an image from a public or semi-public album
+// @Tags Public Image
+// @Produce octet-stream
+// @Param id path string true "Album ID"
+// @Param imageID path string true "Image ID"
+// @Success 200 {file} file
+// @Failure 404 {object} model.ErrorResponse
+// @Router /v1/albums/{id}/images/{imageID} [get]
+func (ctrl *ImageController) ServePublic(c *gin.Context) {
+	albumID := c.Param("id")
+	if _, err := ctrl.service.AlbumService.GetPublicAlbum(c, albumID); err != nil {
+		custom_errors.MapErrors(c, err)
+		return
+	}
+	imagePath, err := ctrl.service.ImageService.ServeImage(albumID, c.Param("imageID"))
+	if err != nil {
+		custom_errors.MapErrors(c, err)
+		return
+	}
 	c.File(imagePath)
 }
 
@@ -162,7 +185,7 @@ func (ctrl *ImageController) Serve(c *gin.Context) {
 // @Failure 404 {object} model.ErrorDetails "Image Not Found"
 // @Failure 409 {object} model.ErrorDetails "Conflict - Duplicate image name"
 // @Failure 500 {object} model.ErrorDetails "Internal Server Error"
-// @Router /v1/album/{id}/{imageID}/rename [patch]
+// @Router /v1/admin/albums/{id}/images/{imageID} [patch]
 // @Security ApiKeyAuth
 func (ctrl *ImageController) Rename(c *gin.Context) {
 	albumID := c.Param("id")

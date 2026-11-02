@@ -60,7 +60,7 @@ func (i *ImageRepository) Upload(albumID string, image *model.Image) (*model.Ima
 
 	image.ID = filepath.Base(imagePath)
 	image.Data = nil
-	image.URL = filepath.Join(i.ApiBasePath, albumID, image.ID)
+	image.URL = filepath.Join(i.ApiBasePath, albumID, "images", image.ID)
 
 	return image, nil
 }
@@ -94,7 +94,7 @@ func (i *ImageRepository) Rename(albumID string, imageID string, newName string)
 
 	return &model.Image{
 		ID:   newName,
-		URL:  filepath.Join(i.ApiBasePath, albumID, newName),
+		URL:  filepath.Join(i.ApiBasePath, albumID, "images", newName),
 		Type: model.ExtensionsMap[(filepath.Ext(newName))],
 	}, nil
 }

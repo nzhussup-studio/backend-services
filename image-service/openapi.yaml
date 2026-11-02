@@ -11,7 +11,7 @@ info:
   title: Image Service API
   version: 1.0.0
 paths:
-  "/v1/album":
+  "/v1/admin/albums":
     get:
       description: Returns a preview list of albums, filtered by type
       responses:
@@ -119,7 +119,7 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/model.AlbumPreview"
-  "/v1/album/{id}":
+  "/v1/admin/albums/{id}":
     delete:
       description: Deletes the album and all associated data
       responses:
@@ -266,7 +266,73 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/model.AlbumPreview"
-  "/v1/album/{id}/{imageID}":
+  "/v1/admin/albums/{id}/images":
+    post:
+      description: Upload one or more image files to the specified album
+      responses:
+        '202':
+          description: Upload accepted for background processing
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/service.UploadJob"
+                  type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '404':
+          description: Album Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorDetails"
+      security:
+      - ApiKeyAuth: []
+      summary: Upload image(s) to an album
+      tags:
+      - Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: array
+                  description: Image file(s) to upload
+                  items:
+                    type: string
+                    format: binary
+              required:
+              - file
+  "/v1/admin/albums/{id}/images/{imageID}":
     delete:
       description: Deletes an image by ID from the given album
       responses:
@@ -351,7 +417,6 @@ paths:
         required: true
         schema:
           type: string
-  "/v1/album/{id}/{imageID}/rename":
     patch:
       description: Renames a specific image in an album to a new valid name (alphanumeric,
         no path components)
@@ -415,73 +480,7 @@ paths:
         required: true
         schema:
           type: string
-  "/v1/album/{id}/upload":
-    post:
-      description: Upload one or more image files to the specified album
-      responses:
-        '202':
-          description: Upload accepted for background processing
-          content:
-            application/json:
-              schema:
-                allOf:
-                - "$ref": "#/components/schemas/model.SuccessResponse"
-                - properties:
-                    data:
-                      "$ref": "#/components/schemas/service.UploadJob"
-                  type: object
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/model.ErrorDetails"
-        '404':
-          description: Album Not Found
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/model.ErrorDetails"
-        '409':
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/model.ErrorDetails"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/model.ErrorDetails"
-      security:
-      - ApiKeyAuth: []
-      summary: Upload image(s) to an album
-      tags:
-      - Image
-      parameters:
-      - description: Album ID
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: array
-                  description: Image file(s) to upload
-                  items:
-                    type: string
-                    format: binary
-              required:
-              - file
-  "/v1/album/{id}/upload/{jobID}":
+  "/v1/admin/albums/{id}/uploads/{jobID}":
     get:
       description: Returns progress and final result for a background image upload
       responses:
@@ -520,7 +519,7 @@ paths:
         required: true
         schema:
           type: string
-  "/v1/album/cache":
+  "/v1/admin/albums/cache":
     delete:
       description: This endpoint clears the server-side cache for images.
       responses:
@@ -541,19 +540,87 @@ paths:
       summary: Clear the image cache
       tags:
       - Cache
-  "/v1/album/health":
+  "/v1/albums":
     get:
-      description: Returns 200 OK if the service is up
       responses:
         '200':
-          description: Service is healthy
+          description: OK
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/model.SuccessResponse"
-      summary: Health check endpoint
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      items:
+                        "$ref": "#/components/schemas/model.AlbumPreview"
+                      type: array
+                  type: object
+      summary: List public albums
       tags:
-      - Health
+      - Public Album
+  "/v1/albums/{id}":
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - "$ref": "#/components/schemas/model.SuccessResponse"
+                - properties:
+                    data:
+                      "$ref": "#/components/schemas/model.Album"
+                  type: object
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+      summary: Get a publicly accessible album
+      tags:
+      - Public Album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+  "/v1/albums/{id}/images/{imageID}":
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Not Found
+          content:
+            application/octet-stream:
+              schema:
+                "$ref": "#/components/schemas/model.ErrorResponse"
+      summary: Serve an image from a public or semi-public album
+      tags:
+      - Public Image
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Image ID
+        in: path
+        name: imageID
+        required: true
+        schema:
+          type: string
 components:
   schemas:
     model.Album:

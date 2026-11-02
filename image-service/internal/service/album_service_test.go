@@ -111,7 +111,7 @@ func setupAlbumServiceWithMock(album *model.Album) (*AlbumService, *MockAlbumRep
 	return service, mockAlbumRepo, mockRedis
 }
 
-func TestGetAlbum_Private_WithTrustedIdentity(t *testing.T) {
+func TestGetAlbum_Private_AdminRead(t *testing.T) {
 	album := &model.Album{ID: "album1", Type: model.Private}
 	service, _, mockRedis := setupAlbumServiceWithMock(album)
 
@@ -122,15 +122,15 @@ func TestGetAlbum_Private_WithTrustedIdentity(t *testing.T) {
 	mockRedis.AssertExpectations(t)
 }
 
-func TestGetAlbum_Private_WithoutTrustedIdentity(t *testing.T) {
+func TestGetPublicAlbum_Private_IsNotExposed(t *testing.T) {
 	album := &model.Album{ID: "album2", Type: model.Private}
 	service, _, mockRedis := setupAlbumServiceWithMock(album)
 
-	result, err := service.GetAlbum(requestContextWithIdentity(""), album.ID)
+	result, err := service.GetPublicAlbum(requestContextWithIdentity(""), album.ID)
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.ErrorIs(t, err, custom_errors.ErrUnauthorized)
+	assert.ErrorIs(t, err, custom_errors.ErrNotFound)
 	mockRedis.AssertExpectations(t)
 }
 

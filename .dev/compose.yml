@@ -164,7 +164,7 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8010/v1/base/health"]
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8010/healthz"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -206,6 +206,12 @@ services:
       GIN_MODE: release
     volumes:
       - image-data:/app/var/images
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--output-document=-", "http://127.0.0.1:8085/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
     networks:
       - backend-internal
 
@@ -221,6 +227,12 @@ services:
       REDIS_PORT: 6379
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       OPENROUTER_API_URL: ${OPENROUTER_API_URL:-https://openrouter.ai/api/v1/chat/completions}
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--output-document=-", "http://127.0.0.1:8086/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
     networks:
       - backend-internal
 
@@ -239,9 +251,9 @@ services:
       KEYCLOAK_ADMIN_CLIENT_ID: ${ACCOUNT_SERVICE_ADMIN_CLIENT_ID:-account-service-admin}
       KEYCLOAK_ADMIN_CLIENT_SECRET: ${ACCOUNT_SERVICE_ADMIN_CLIENT_SECRET:-account-service-dev-secret}
       PORT: 8087
-      API_BASE_PATH: /v1/account
+      API_BASE_PATH: /v1/me/account
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--output-document=-", "http://127.0.0.1:8087/health"]
+      test: ["CMD", "wget", "--quiet", "--output-document=-", "http://127.0.0.1:8087/healthz"]
       interval: 10s
       timeout: 5s
       retries: 10

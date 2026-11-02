@@ -44,7 +44,7 @@ func Load() *Config {
 	cfg.Server.Addr = fmt.Sprintf(":%d", port)
 
 	// API
-	cfg.API.BasePath = env.GetString("API_BASE_PATH", "/v1/album")
+	cfg.API.BasePath = env.GetString("API_BASE_PATH", "/v1/albums")
 
 	// Storage
 	cfg.Storage.Path = env.GetString("STORAGE_PATH", "var/images")

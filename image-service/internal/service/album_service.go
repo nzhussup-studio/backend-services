@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"image-service/internal/auth"
 	"image-service/internal/cache"
 	custom_errors "image-service/internal/errors"
 	"image-service/internal/model"
@@ -23,9 +22,6 @@ func (s *AlbumService) GetAlbum(c *gin.Context, id string) (*model.Album, error)
 	var cachedAlbum *model.Album
 	err := s.redis.Get(fmt.Sprintf("album_%s", id), &cachedAlbum)
 	if err == nil {
-		if err = allowedToReturn(c, cachedAlbum); err != nil {
-			return nil, err
-		}
 		return cachedAlbum, nil
 	}
 
@@ -33,11 +29,20 @@ func (s *AlbumService) GetAlbum(c *gin.Context, id string) (*model.Album, error)
 	if err != nil {
 		return nil, err
 	}
-	if err = allowedToReturn(c, album); err != nil {
+	s.redis.Set(fmt.Sprintf("album_%s", id), album)
+	return album, nil
+}
+
+// GetPublicAlbum returns only albums that are safe to expose without
+// authentication. Private albums deliberately look absent on the public API.
+func (s *AlbumService) GetPublicAlbum(c *gin.Context, id string) (*model.Album, error) {
+	album, err := s.GetAlbum(c, id)
+	if err != nil {
 		return nil, err
 	}
-
-	s.redis.Set(fmt.Sprintf("album_%s", id), album)
+	if album.Type != model.Public && album.Type != model.SemiPublic {
+		return nil, custom_errors.NewError(custom_errors.ErrNotFound, "album not found")
+	}
 	return album, nil
 }
 
@@ -65,6 +70,13 @@ func (s *AlbumService) GetAlbumsPreview(typeQuery string) ([]*model.AlbumPreview
 		break
 	}
 	return albums, nil
+}
+
+func (s *AlbumService) GetPublicAlbumsPreview(typeQuery string) ([]*model.AlbumPreview, error) {
+	if typeQuery != string(model.Public) {
+		return nil, custom_errors.NewError(custom_errors.ErrForbidden, "album visibility is not public")
+	}
+	return s.GetAlbumsPreview(typeQuery)
 }
 
 func (s *AlbumService) CreateAlbum(album *model.AlbumPreview) (*model.AlbumPreview, error) {
@@ -125,13 +137,4 @@ func filterAlbums(albums []*model.AlbumPreview, predicate func(*model.AlbumPrevi
 		}
 	}
 	return filtered
-}
-
-func allowedToReturn(c *gin.Context, album *model.Album) error {
-	if album.Type == model.Private {
-		if err := auth.RequireIdentity(c); err != nil {
-			return err
-		}
-	}
-	return nil
 }

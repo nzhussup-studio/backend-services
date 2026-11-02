@@ -11,7 +11,7 @@ info:
   title: Summarizer Service API
   version: 1.0.0
 paths:
-  "/v1/llm/configuration":
+  "/v1/admin/llm/configuration":
     get:
       description: Returns active runtime LLM settings such as model, prompts, and
         parallel generation flag.
@@ -51,28 +51,8 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/dto.ConfigurationRequest"
-  "/v1/llm/health":
-    get:
-      description: Checks the connectivity and health of dependent services, particularly
-        Redis.
-      responses:
-        '200':
-          description: Status OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/dto.APIResponse"
-        '500':
-          description: Redis connection failed
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/dto.APIResponse"
-      summary: Health check endpoint
-      tags:
-      - health
-  "/v1/llm/summarize":
-    get:
+  "/v1/llm/summaries":
+    post:
       description: Retrieves structured personal data (e.g., work experience, education),
         generates a professional summary using a large language model (LLM), and returns
         it in the requested language.

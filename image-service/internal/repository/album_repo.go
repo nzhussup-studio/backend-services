@@ -93,7 +93,7 @@ func (a *AlbumRepository) Get(id string) (*model.Album, error) {
 			continue
 		}
 
-		imageURL := fmt.Sprintf("%s/%s/%s", a.ApiBasePath, id, file.Name())
+		imageURL := fmt.Sprintf("%s/%s/images/%s", a.ApiBasePath, id, file.Name())
 
 		image := &model.Image{
 			ID:   file.Name(),

@@ -23,11 +23,11 @@ func setupAlbumController(mockSvc *MockAlbumService) (*gin.Engine, *AlbumControl
 	svc := &service.Service{AlbumService: mockSvc}
 	ctrl := &AlbumController{service: svc}
 
-	r.GET("/v1/album/:id", ctrl.Get)
-	r.GET("/v1/album", ctrl.GetPreview)
-	r.POST("/v1/album", ctrl.Create)
-	r.DELETE("/v1/album/:id", ctrl.Delete)
-	r.PUT("/v1/album/:id", ctrl.Update)
+	r.GET("/v1/admin/albums/:id", ctrl.Get)
+	r.GET("/v1/admin/albums", ctrl.GetPreview)
+	r.POST("/v1/admin/albums", ctrl.Create)
+	r.DELETE("/v1/admin/albums/:id", ctrl.Delete)
+	r.PUT("/v1/admin/albums/:id", ctrl.Update)
 
 	return r, ctrl
 }
@@ -39,7 +39,7 @@ func TestAlbumController_Get_Success(t *testing.T) {
 	expected := &model.Album{ID: "123", Title: "Test", Type: model.Public}
 	mockSvc.On("GetAlbum", mock.Anything, "123").Return(expected, nil)
 
-	req, _ := http.NewRequest(http.MethodGet, "/v1/album/123", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/v1/admin/albums/123", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -53,7 +53,7 @@ func TestAlbumController_Get_Error(t *testing.T) {
 
 	mockSvc.On("GetAlbum", mock.Anything, "999").Return(nil, errors.New("not found"))
 
-	req, _ := http.NewRequest(http.MethodGet, "/v1/album/999", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/v1/admin/albums/999", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -70,7 +70,7 @@ func TestAlbumController_Get_Forbidden(t *testing.T) {
 		custom_errors.NewError(custom_errors.ErrForbidden, "User is not an admin"),
 	)
 
-	req, _ := http.NewRequest(http.MethodGet, "/v1/album/999", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/v1/admin/albums/999", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -85,7 +85,7 @@ func TestAlbumController_GetPreview_Success(t *testing.T) {
 	expected := []*model.AlbumPreview{{ID: "1", Title: "A", Type: model.Public}}
 	mockSvc.On("GetAlbumsPreview", "public").Return(expected, nil)
 
-	req, _ := http.NewRequest(http.MethodGet, "/v1/album?type=public", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/v1/admin/albums?type=public", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -97,7 +97,7 @@ func TestAlbumController_GetPreview_InvalidType(t *testing.T) {
 	mockSvc := new(MockAlbumService)
 	router, _ := setupAlbumController(mockSvc)
 
-	req, _ := http.NewRequest(http.MethodGet, "/v1/album?type=invalid", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/v1/admin/albums?type=invalid", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -112,7 +112,7 @@ func TestAlbumController_Create_Success(t *testing.T) {
 	mockSvc.On("CreateAlbum", reqBody).Return(reqBody, nil)
 
 	body, _ := json.Marshal(reqBody)
-	req, _ := http.NewRequest(http.MethodPost, "/v1/album", bytes.NewBuffer(body))
+	req, _ := http.NewRequest(http.MethodPost, "/v1/admin/albums", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
@@ -128,7 +128,7 @@ func TestAlbumController_Delete_Success(t *testing.T) {
 
 	mockSvc.On("DeleteAlbum", "123").Return(nil)
 
-	req, _ := http.NewRequest(http.MethodDelete, "/v1/album/123", nil)
+	req, _ := http.NewRequest(http.MethodDelete, "/v1/admin/albums/123", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -144,7 +144,7 @@ func TestAlbumController_Update_Success(t *testing.T) {
 	mockSvc.On("UpdateAlbum", "321", input).Return(input, nil)
 
 	body, _ := json.Marshal(input)
-	req, _ := http.NewRequest(http.MethodPut, "/v1/album/321", bytes.NewBuffer(body))
+	req, _ := http.NewRequest(http.MethodPut, "/v1/admin/albums/321", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
