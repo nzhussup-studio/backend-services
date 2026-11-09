@@ -55,7 +55,7 @@ func TestClient_doLLMRequest(t *testing.T) {
 
 		_, err := s.doLLMRequest(context.Background(), map[string]interface{}{}, map[string]string{})
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "summarizer API error")
+		require.Contains(t, err.Error(), "summarizer API returned HTTP 502")
 		require.Contains(t, err.Error(), "upstream failure")
 	})
 
@@ -81,15 +81,15 @@ func TestClient_fetchAllData(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
-			case "/work-experience":
+			case "/work-experiences":
 				_, _ = w.Write([]byte(`[{"id":1,"company":"A","location":"L","startDate":"2020","endDate":"2021","position":"SE","description":"D","displayOrder":1,"techStack":"Go"}]`))
-			case "/education":
+			case "/education-records":
 				_, _ = w.Write([]byte(`[]`))
-			case "/project":
+			case "/projects":
 				_, _ = w.Write([]byte(`[]`))
-			case "/skill":
+			case "/skills":
 				_, _ = w.Write([]byte(`[]`))
-			case "/certificate":
+			case "/certificates":
 				_, _ = w.Write([]byte(`[]`))
 			default:
 				http.NotFound(w, r)
@@ -99,11 +99,11 @@ func TestClient_fetchAllData(t *testing.T) {
 
 		s := &Summarizer{
 			DATA_URLS: []string{
-				srv.URL + "/work-experience",
-				srv.URL + "/education",
-				srv.URL + "/project",
-				srv.URL + "/skill",
-				srv.URL + "/certificate",
+				srv.URL + "/work-experiences",
+				srv.URL + "/education-records",
+				srv.URL + "/projects",
+				srv.URL + "/skills",
+				srv.URL + "/certificates",
 			},
 		}
 
@@ -130,7 +130,7 @@ func TestClient_fetchAllData(t *testing.T) {
 
 	t.Run("invalid JSON for known key", func(t *testing.T) {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasSuffix(r.URL.Path, "/work-experience") {
+			if strings.HasSuffix(r.URL.Path, "/work-experiences") {
 				_, _ = w.Write([]byte(`not-json`))
 				return
 			}
@@ -139,12 +139,12 @@ func TestClient_fetchAllData(t *testing.T) {
 		defer srv.Close()
 
 		s := &Summarizer{
-			DATA_URLS: []string{srv.URL + "/work-experience"},
+			DATA_URLS: []string{srv.URL + "/work-experiences"},
 		}
 
 		_, err := s.fetchAllData(context.Background())
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "failed to unmarshal work-experience")
+		require.Contains(t, err.Error(), "failed to unmarshal work-experiences")
 	})
 
 	t.Run("reports an upstream HTTP error before decoding", func(t *testing.T) {
@@ -153,9 +153,9 @@ func TestClient_fetchAllData(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		s := &Summarizer{Client: srv.Client(), DATA_URLS: []string{srv.URL + "/work-experience"}}
+		s := &Summarizer{Client: srv.Client(), DATA_URLS: []string{srv.URL + "/work-experiences"}}
 		_, err := s.fetchAllData(context.Background())
-		require.EqualError(t, err, "work-experience service returned HTTP 502 instead of JSON")
+		require.EqualError(t, err, "work-experiences service returned HTTP 502 instead of JSON")
 	})
 
 	t.Run("reports an HTML response clearly", func(t *testing.T) {
@@ -165,8 +165,8 @@ func TestClient_fetchAllData(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		s := &Summarizer{Client: srv.Client(), DATA_URLS: []string{srv.URL + "/work-experience"}}
+		s := &Summarizer{Client: srv.Client(), DATA_URLS: []string{srv.URL + "/work-experiences"}}
 		_, err := s.fetchAllData(context.Background())
-		require.EqualError(t, err, "work-experience service returned HTML instead of JSON")
+		require.EqualError(t, err, "work-experiences service returned HTML instead of JSON")
 	})
 }

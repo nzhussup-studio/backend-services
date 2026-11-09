@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,10 +15,12 @@ type healthCacheMock struct {
 	pingErr error
 }
 
-func (m *healthCacheMock) Set(string, any) error { return nil }
-func (m *healthCacheMock) Get(string, any) error { return nil }
-func (m *healthCacheMock) Del(string) error      { return nil }
-func (m *healthCacheMock) Ping() error           { return m.pingErr }
+func (m *healthCacheMock) Set(string, any) error                          { return nil }
+func (m *healthCacheMock) SetWithTTL(string, any, time.Duration) error    { return nil }
+func (m *healthCacheMock) SetNX(string, any, time.Duration) (bool, error) { return true, nil }
+func (m *healthCacheMock) Get(string, any) error                          { return nil }
+func (m *healthCacheMock) Del(string) error                               { return nil }
+func (m *healthCacheMock) Ping() error                                    { return m.pingErr }
 
 func TestGetHealth(t *testing.T) {
 	gin.SetMode(gin.TestMode)

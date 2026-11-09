@@ -1,36 +1,50 @@
 package summarizer
 
 import (
-	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"llm-service/internal/cache"
 	"llm-service/internal/model"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
 
-const wrapper = "%w: %v"
-
-var cacheKeys = map[string]string{
-	"kk": "summary_kk",
-	"de": "summary_de",
-	"en": "summary_en",
-}
-
-var (
-	ErrFailedToFetchPersonalData = fmt.Errorf("failed to fetch personal data")
-	ErrFailedToFetchPromptBase   = fmt.Errorf("failed to fetch prompt base data")
-	ErrFailedToGetSummary        = fmt.Errorf("failed to get summary from LLM")
-	ErrNoSummaryReceived         = fmt.Errorf("no summary received from the API")
-	ErrCacheFailure              = fmt.Errorf("cache failure: %w", cache.ErrCache)
-	ErrFailedToGetCachedSummary  = fmt.Errorf("failed to get cached summary")
+const (
+	generationLease = 2 * time.Minute
+	generationLimit = 90 * time.Second
+	failedStateTTL  = time.Minute
 )
 
-type SummarizerAPI interface {
-	Summarize() (string, error)
+var supportedLanguages = []string{"en", "kk", "de"}
+
+type Summary struct {
+	Text        string    `json:"text"`
+	DataHash    string    `json:"data_hash"`
+	ConfigHash  string    `json:"config_hash"`
+	GeneratedAt time.Time `json:"generated_at"`
+}
+
+type Generation struct {
+	JobID      string    `json:"job_id"`
+	Status     string    `json:"status"`
+	DataHash   string    `json:"data_hash"`
+	ConfigHash string    `json:"config_hash"`
+	StartedAt  time.Time `json:"started_at"`
+	Error      string    `json:"error,omitempty"`
+}
+
+type Result struct {
+	Status      string
+	Language    string
+	Summary     string
+	PollAfterMS int
 }
 
 type Summarizer struct {
@@ -39,179 +53,194 @@ type Summarizer struct {
 	DATA_URLS []string
 	Client    *http.Client
 	redis     cache.Cacher
-	lang      string
 }
 
-func NewSummarizer(apiKey, apiURL string, dataURLS []string, client *http.Client, redis cache.Cacher, lang string) *Summarizer {
-	return &Summarizer{
-		API_KEY:   apiKey,
-		API_URL:   apiURL,
-		DATA_URLS: dataURLS,
-		Client:    client,
-		redis:     redis,
-		lang:      lang,
+func NewSummarizer(apiKey, apiURL string, dataURLs []string, client *http.Client, redis cache.Cacher) *Summarizer {
+	if client == nil {
+		client = &http.Client{Timeout: generationLimit}
 	}
+	return &Summarizer{API_KEY: apiKey, API_URL: apiURL, DATA_URLS: dataURLs, Client: client, redis: redis}
 }
 
-// Summarize fetches personal data from configured endpoints, generates prompts, and requests a summary from the LLM API
-func (s *Summarizer) Summarize(ctx context.Context) (string, error) {
+func (s *Summarizer) Start(ctx context.Context, requestedLanguage string) (Result, error) {
 	pd, err := s.fetchAllData(ctx)
 	if err != nil {
-		return "", fmt.Errorf(wrapper, ErrFailedToFetchPersonalData, err)
+		return Result{}, fmt.Errorf("failed to fetch personal data: %w", err)
 	}
-
-	dataUnchanged := s.checkDataUnchanged(ctx, pd)
-	if dataUnchanged {
-		if cachedSummary := s.fetchCachedSummary(); cachedSummary != "" {
-			return cachedSummary, nil
-		}
-	} else {
-		s.flushAllSummaryCache()
-
-		if err := s.redis.Set("previous_personal_data", pd); err != nil {
-			slog.Error("Failed to cache previous personal data", slog.String("error", err.Error()))
-		}
-	}
-
-	// Immediate summarization for the current language
-	currentSummary, err := s.doFullSummarization(ctx, pd)
+	dataHash, err := hashValue(pd)
 	if err != nil {
-		return "", fmt.Errorf(wrapper, ErrFailedToGetSummary, err)
+		return Result{}, fmt.Errorf("failed to hash personal data: %w", err)
 	}
 
-	if GetRuntimeConfig().EnableParallelGeneration {
-		// Background summaries for other languages
-		go s.backgroundSummarizeOthers(context.Background(), pd)
-	}
-
-	return currentSummary, nil
-}
-
-// backgroundSummarizeOthers generates summaries for languages other than s.lang, caches them
-func (s *Summarizer) backgroundSummarizeOthers(ctx context.Context, pd *model.PersonalData) {
-	langs := []string{"en", "kk", "de"}
-
-	for _, lang := range langs {
-		if lang == s.lang {
-			continue // Skip current language, already processed
+	for _, language := range supportedLanguages {
+		cfgHash := configHash(language)
+		var cached Summary
+		if err := s.redis.Get(summaryKey(language), &cached); err == nil && cached.DataHash == dataHash && cached.ConfigHash == cfgHash {
+			slog.Info("summary_cache_hit", slog.String("language", language), slog.String("data_hash", shortHash(dataHash)))
+			continue
 		}
 
-		time.Sleep(3 * time.Second) // Add delay between goroutines, to avoid rate limitation issues
+		_ = s.redis.Del(summaryKey(language))
+		var active Generation
+		if err := s.redis.Get(generationKey(language), &active); err == nil &&
+			(active.Status == "failed" || active.DataHash != dataHash || active.ConfigHash != cfgHash) {
+			_ = s.redis.Del(generationKey(language))
+		}
+		job := Generation{JobID: newJobID(), Status: "generating", DataHash: dataHash, ConfigHash: cfgHash, StartedAt: time.Now().UTC()}
+		acquired, err := s.redis.SetNX(generationKey(language), job, generationLease)
+		if err != nil {
+			return Result{}, fmt.Errorf("failed to acquire %s generation: %w", language, err)
+		}
+		if !acquired {
+			slog.Info("generation_already_running", slog.String("language", language))
+			continue
+		}
 
-		go func(lang string) {
-			// Create a new Summarizer instance with the other language
-			otherSummarizer := NewSummarizer(s.API_KEY, s.API_URL, s.DATA_URLS, s.Client, s.redis, lang)
-
-			// Run summarization ignoring errors (just log)
-			summary, err := otherSummarizer.doFullSummarization(ctx, pd)
-			if err != nil {
-				slog.Error("Background summarization failed",
-					slog.String("lang", lang),
-					slog.String("error", err.Error()))
-				return
-			}
-
-			// Cache the summary (doFullSummarization caches it too, but we do again here just in case)
-			if err := s.redis.Set(otherSummarizer.getCacheKey(), summary); err != nil {
-				slog.Error("Failed to cache background summary",
-					slog.String("lang", lang),
-					slog.String("error", err.Error()))
-			}
-		}(lang)
+		slog.Info("generation_scheduled", slog.String("language", language), slog.String("job_id", job.JobID), slog.String("data_hash", shortHash(dataHash)))
+		go s.generate(language, job, pd, dataHash, cfgHash)
 	}
+
+	return s.Get(requestedLanguage)
 }
 
-func (s *Summarizer) fetchCachedSummary() string {
-	var cachedSummary string
-
-	if err := s.redis.Get(s.getCacheKey(), &cachedSummary); err != nil {
-		return ""
+func (s *Summarizer) Get(language string) (Result, error) {
+	var summary Summary
+	if err := s.redis.Get(summaryKey(language), &summary); err == nil {
+		return Result{Status: "completed", Language: language, Summary: summary.Text}, nil
+	} else if !errors.Is(err, cache.ErrNotFound) {
+		return Result{}, fmt.Errorf("failed to read cached summary: %w", err)
 	}
-	return cachedSummary
+
+	var generation Generation
+	if err := s.redis.Get(generationKey(language), &generation); err == nil {
+		result := Result{Status: generation.Status, Language: language}
+		if generation.Status == "generating" {
+			result.PollAfterMS = 1500
+		}
+		return result, nil
+	} else if !errors.Is(err, cache.ErrNotFound) {
+		return Result{}, fmt.Errorf("failed to read generation state: %w", err)
+	}
+
+	return Result{Status: "missing", Language: language}, nil
 }
 
-func (s *Summarizer) doFullSummarization(ctx context.Context, pd *model.PersonalData) (string, error) {
-	systemPrompt, userPrompt, err := s.getPromptBase(pd)
+func (s *Summarizer) generate(language string, job Generation, pd *model.PersonalData, dataHash, cfgHash string) {
+	started := time.Now()
+	ctx, cancel := context.WithTimeout(context.Background(), generationLimit)
+	defer cancel()
+
+	slog.Info("generation_started", slog.String("language", language), slog.String("job_id", job.JobID))
+	text, err := s.generateWithRetry(ctx, language, pd, job.JobID)
 	if err != nil {
-		return "", fmt.Errorf(wrapper, ErrFailedToFetchPromptBase, err)
+		slog.Error("generation_failed", slog.String("language", language), slog.String("job_id", job.JobID), slog.Duration("duration", time.Since(started)), slog.String("error", err.Error()))
+		if s.ownsJob(language, job.JobID) {
+			job.Status = "failed"
+			job.Error = "generation_failed"
+			_ = s.redis.SetWithTTL(generationKey(language), job, failedStateTTL)
+		}
+		return
 	}
 
-	headers := map[string]string{
-		"Content-Type":  "application/json",
-		"Authorization": fmt.Sprintf("Bearer %s", s.API_KEY),
+	if !s.ownsJob(language, job.JobID) {
+		slog.Warn("generation_result_discarded", slog.String("language", language), slog.String("job_id", job.JobID))
+		return
 	}
+	record := Summary{Text: text, DataHash: dataHash, ConfigHash: cfgHash, GeneratedAt: time.Now().UTC()}
+	if err := s.redis.SetWithTTL(summaryKey(language), record, 0); err != nil {
+		slog.Error("generation_cache_failed", slog.String("language", language), slog.String("job_id", job.JobID), slog.String("error", err.Error()))
+		return
+	}
+	_ = s.redis.Del(generationKey(language))
+	slog.Info("generation_completed", slog.String("language", language), slog.String("job_id", job.JobID), slog.Duration("duration", time.Since(started)))
+}
 
+func (s *Summarizer) generateWithRetry(ctx context.Context, language string, pd *model.PersonalData, jobID string) (string, error) {
+	var lastErr error
+	for attempt := 1; attempt <= 3; attempt++ {
+		text, retry, err := s.generateOnce(ctx, language, pd)
+		if err == nil {
+			return text, nil
+		}
+		lastErr = err
+		if !retry || attempt == 3 {
+			break
+		}
+		delay := time.Duration(attempt) * time.Second
+		slog.Warn("generation_retry", slog.String("language", language), slog.String("job_id", jobID), slog.Int("attempt", attempt), slog.Duration("delay", delay), slog.String("error", err.Error()))
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		case <-time.After(delay):
+		}
+	}
+	return "", lastErr
+}
+
+func (s *Summarizer) generateOnce(ctx context.Context, language string, pd *model.PersonalData) (string, bool, error) {
+	systemPrompt, userPrompt, err := getPromptBase(language, pd)
+	if err != nil {
+		return "", false, err
+	}
 	payload := map[string]interface{}{
-		"model": GetRuntimeConfig().Model,
-		"messages": []map[string]string{
-			{"role": "system", "content": systemPrompt},
-			{"role": "user", "content": userPrompt},
-		},
+		"model":    GetRuntimeConfig().Model,
+		"messages": []map[string]string{{"role": "system", "content": systemPrompt}, {"role": "user", "content": userPrompt}},
 	}
-
-	result, err := s.doLLMRequest(ctx, payload, headers)
+	result, err := s.doLLMRequest(ctx, payload, map[string]string{"Content-Type": "application/json", "Authorization": "Bearer " + s.API_KEY})
 	if err != nil {
-		return "", fmt.Errorf(wrapper, ErrFailedToGetSummary, err)
+		var upstream *UpstreamError
+		retry := errors.As(err, &upstream) && (upstream.Status == http.StatusTooManyRequests || upstream.Status >= 500)
+		if errors.Is(err, context.DeadlineExceeded) {
+			retry = true
+		}
+		return "", retry, err
 	}
-
-	if result == nil || len(result.Choices) == 0 || result.Choices[0].Message.Content == "" {
-		return "", ErrNoSummaryReceived
+	if result == nil || len(result.Choices) == 0 || strings.TrimSpace(result.Choices[0].Message.Content) == "" {
+		return "", false, fmt.Errorf("no summary received from the API")
 	}
-
-	// Cache the summary for future requests
-	if err := s.redis.Set(s.getCacheKey(), result.Choices[0].Message.Content); err != nil {
-		slog.Error("Failed to cache summary", slog.String("error", err.Error()))
-	}
-	return result.Choices[0].Message.Content, nil
+	return strings.TrimSpace(result.Choices[0].Message.Content), false, nil
 }
 
-// checks if the personal data has NOT changed by comparing it with the cached version.
-// Returns true if data is unchanged, false otherwise. Defaults to false if cache is not found.
-func (s *Summarizer) checkDataUnchanged(ctx context.Context, currentData *model.PersonalData) bool {
-	const cacheKey = "previous_personal_data"
-
-	var previousData model.PersonalData
-	if err := s.redis.Get(cacheKey, &previousData); err != nil {
-		return false // If cache is not found, assume data has changed → return false (NOT unchanged)
-	}
-
-	prevJSON, err := json.Marshal(previousData)
-	if err != nil {
-		return false // Can't marshal previous data, assume changed → false
-	}
-	currJSON, err := json.Marshal(currentData)
-	if err != nil {
-		return false // Can't marshal current data, assume changed → false
-	}
-
-	if bytes.Equal(prevJSON, currJSON) {
-		return true // Data is unchanged
-	}
-
-	if err = s.redis.Set(cacheKey, currentData); err != nil {
-		return false // Can't set cache, assume changed → false
-	}
-
-	return false // Data changed
+func (s *Summarizer) ownsJob(language, jobID string) bool {
+	var current Generation
+	return s.redis.Get(generationKey(language), &current) == nil && current.JobID == jobID
 }
 
-func (s *Summarizer) flushAllSummaryCache() {
-	if err := s.redis.Del("summary_en"); err != nil {
-		slog.Error("error deleting summary cache for English", slog.Any("error", err))
+func hashValue(value any) (string, error) {
+	b, err := json.Marshal(value)
+	if err != nil {
+		return "", err
 	}
-	if err := s.redis.Del("summary_kk"); err != nil {
-		slog.Error("error deleting summary cache for Kazakh", slog.Any("error", err))
-	}
-	if err := s.redis.Del("summary_de"); err != nil {
-		slog.Error("error deleting summary cache for German", slog.Any("error", err))
-	}
+	sum := sha256.Sum256(b)
+	return hex.EncodeToString(sum[:]), nil
 }
 
-// gets right cache based on the language setting
-func (s *Summarizer) getCacheKey() string {
-	if key, ok := cacheKeys[s.lang]; ok {
-		return key
+func configHash(language string) string {
+	cfg := GetRuntimeConfig()
+	prompt := cfg.SystemPromptEN
+	if language == "kk" {
+		prompt = cfg.SystemPromptKK
 	}
-	slog.Warn("unsupported language, defaulting to English", slog.String("lang", s.lang))
-	return "summary_en"
+	if language == "de" {
+		prompt = cfg.SystemPromptDE
+	}
+	hash, _ := hashValue(struct{ Model, Prompt string }{cfg.Model, prompt})
+	return hash
+}
+
+func newJobID() string {
+	b := make([]byte, 12)
+	if _, err := rand.Read(b); err != nil {
+		return fmt.Sprintf("%d", time.Now().UnixNano())
+	}
+	return hex.EncodeToString(b)
+}
+
+func summaryKey(language string) string    { return "llm:summary:" + language }
+func generationKey(language string) string { return "llm:generation:" + language }
+func shortHash(hash string) string {
+	if len(hash) > 8 {
+		return hash[:8]
+	}
+	return hash
 }

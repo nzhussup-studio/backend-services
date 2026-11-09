@@ -10,8 +10,6 @@ definitions:
     type: object
   dto.ConfigurationRequest:
     properties:
-      enable_parallel_generation:
-        type: boolean
       model:
         type: string
       system_prompt_de:
@@ -23,8 +21,6 @@ definitions:
     type: object
   dto.ConfigurationResponse:
     properties:
-      enable_parallel_generation:
-        type: boolean
       model:
         type: string
       status:
@@ -34,6 +30,28 @@ definitions:
       system_prompt_en:
         type: string
       system_prompt_kk:
+        type: string
+    type: object
+  dto.GenerationRequest:
+    properties:
+      language:
+        example: en
+        type: string
+    required:
+    - language
+    type: object
+  dto.SummaryResponse:
+    properties:
+      language:
+        example: en
+        type: string
+      poll_after_ms:
+        example: 1500
+        type: integer
+      status:
+        example: generating
+        type: string
+      summary:
         type: string
     type: object
 host: localhost:8086
@@ -50,8 +68,7 @@ info:
 paths:
   /v1/admin/llm/configuration:
     get:
-      description: Returns active runtime LLM settings such as model, prompts, and
-        parallel generation flag.
+      description: Returns the active model and language prompts.
       produces:
       - application/json
       responses:
@@ -65,8 +82,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates runtime LLM settings such as model, prompts, and parallel
-        generation flag.
+      description: Updates the active model and language prompts.
       parameters:
       - description: Configuration overrides
         in: body
@@ -88,31 +104,81 @@ paths:
       summary: Update LLM configuration
       tags:
       - configuration
-  /v1/llm/summaries:
-    post:
-      description: Retrieves structured personal data (e.g., work experience, education),
-        generates a professional summary using a large language model (LLM), and returns
-        it in the requested language.
+  /v1/llm/summaries/{language}:
+    get:
       parameters:
-      - in: query
-        name: lang
+      - description: Language
+        enum:
+        - en
+        - kk
+        - de
+        in: path
+        name: language
+        required: true
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Generated professional summary
+          description: Generated summary
+          schema:
+            $ref: '#/definitions/dto.SummaryResponse'
+        "202":
+          description: Generation in progress
+          schema:
+            $ref: '#/definitions/dto.SummaryResponse'
+        "400":
+          description: Invalid language
           schema:
             $ref: '#/definitions/dto.APIResponse'
+        "404":
+          description: No summary or active generation
+          schema:
+            $ref: '#/definitions/dto.SummaryResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.APIResponse'
+        "503":
+          description: Generation failed
+          schema:
+            $ref: '#/definitions/dto.SummaryResponse'
+      summary: Get summary or generation status
+      tags:
+      - summarizer
+  /v1/llm/summaries/generations:
+    post:
+      consumes:
+      - application/json
+      description: Returns a current cached summary or starts missing and stale language
+        summaries in parallel.
+      parameters:
+      - description: Requested language
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GenerationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current summary
+          schema:
+            $ref: '#/definitions/dto.SummaryResponse'
+        "202":
+          description: Generation in progress
+          schema:
+            $ref: '#/definitions/dto.SummaryResponse'
         "400":
-          description: Invalid query parameters
+          description: Invalid request
           schema:
             $ref: '#/definitions/dto.APIResponse'
         "500":
-          description: Internal server error with error details
+          description: Internal server error
           schema:
             $ref: '#/definitions/dto.APIResponse'
-      summary: Generate professional profile summary
+      summary: Start or join summary generation
       tags:
       - summarizer
 securityDefinitions:

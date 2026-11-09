@@ -8,20 +8,22 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type noopCache struct{}
 
-func (noopCache) Set(string, any) error { return nil }
-func (noopCache) Get(string, any) error { return nil }
-func (noopCache) Del(string) error      { return nil }
-func (noopCache) Ping() error           { return nil }
-func str(v string) *string              { return &v }
-func b(v bool) *bool                    { return &v }
-func newHandlerForConfig() *Handler     { return New(&configs.Config{}, noopCache{}) }
-func setGinTestMode()                   { gin.SetMode(gin.TestMode) }
+func (noopCache) Set(string, any) error                          { return nil }
+func (noopCache) SetWithTTL(string, any, time.Duration) error    { return nil }
+func (noopCache) SetNX(string, any, time.Duration) (bool, error) { return true, nil }
+func (noopCache) Get(string, any) error                          { return nil }
+func (noopCache) Del(string) error                               { return nil }
+func (noopCache) Ping() error                                    { return nil }
+func str(v string) *string                                       { return &v }
+func newHandlerForConfig() *Handler                              { return New(&configs.Config{}, noopCache{}) }
+func setGinTestMode()                                            { gin.SetMode(gin.TestMode) }
 func mustUnmarshalMap(t *testing.T, b []byte) map[string]any {
 	t.Helper()
 	var m map[string]any
@@ -32,11 +34,10 @@ func mustUnmarshalMap(t *testing.T, b []byte) map[string]any {
 func restoreConfig(t *testing.T, cfg summarizer.RuntimeConfig) {
 	t.Helper()
 	err := summarizer.UpdateRuntimeConfig(summarizer.RuntimeConfigUpdate{
-		Model:                    str(cfg.Model),
-		SystemPromptEN:           str(cfg.SystemPromptEN),
-		SystemPromptDE:           str(cfg.SystemPromptDE),
-		SystemPromptKK:           str(cfg.SystemPromptKK),
-		EnableParallelGeneration: b(cfg.EnableParallelGeneration),
+		Model:          str(cfg.Model),
+		SystemPromptEN: str(cfg.SystemPromptEN),
+		SystemPromptDE: str(cfg.SystemPromptDE),
+		SystemPromptKK: str(cfg.SystemPromptKK),
 	})
 	if err != nil {
 		t.Fatalf("failed to restore runtime config: %v", err)
@@ -72,9 +73,8 @@ func TestConfigurationHandlers(t *testing.T) {
 		r.PUT("/configuration", h.PutConfiguration)
 
 		payload := map[string]any{
-			"model":                      "openai/gpt-4.1-mini",
-			"system_prompt_en":           "Custom EN",
-			"enable_parallel_generation": false,
+			"model":            "openai/gpt-4.1-mini",
+			"system_prompt_en": "Custom EN",
 		}
 		raw, _ := json.Marshal(payload)
 		req := httptest.NewRequest(http.MethodPut, "/configuration", bytes.NewReader(raw))
@@ -87,7 +87,7 @@ func TestConfigurationHandlers(t *testing.T) {
 		}
 
 		cfg := summarizer.GetRuntimeConfig()
-		if cfg.Model != "openai/gpt-4.1-mini" || cfg.SystemPromptEN != "Custom EN" || cfg.EnableParallelGeneration {
+		if cfg.Model != "openai/gpt-4.1-mini" || cfg.SystemPromptEN != "Custom EN" {
 			t.Fatalf("runtime config not updated as expected: %#v", cfg)
 		}
 	})

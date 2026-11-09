@@ -16,12 +16,15 @@ var (
 
 type Cacher interface {
 	Set(key string, value any) error
+	SetWithTTL(key string, value any, ttl time.Duration) error
+	SetNX(key string, value any, ttl time.Duration) (bool, error)
 	Get(key string, dest any) error
 	Del(key string) error
 }
 
 type RedisAPI interface {
 	Set(ctx context.Context, key string, value any, expiration time.Duration) *redis.StatusCmd
+	SetNX(ctx context.Context, key string, value any, expiration time.Duration) *redis.BoolCmd
 	Get(ctx context.Context, key string) *redis.StringCmd
 	Del(ctx context.Context, keys ...string) *redis.IntCmd
 	Ping(ctx context.Context) *redis.StatusCmd
@@ -65,6 +68,19 @@ func (r *RedisClient) SetWithTTL(key string, value any, ttl time.Duration) error
 	}
 
 	return nil
+}
+
+func (r *RedisClient) SetNX(key string, value any, ttl time.Duration) (bool, error) {
+	jsonData, err := json.Marshal(value)
+	if err != nil {
+		return false, fmt.Errorf(wrapper, err, "failed to marshal value for cache")
+	}
+
+	created, err := r.Client.SetNX(context.Background(), key, jsonData, ttl).Result()
+	if err != nil {
+		return false, fmt.Errorf(wrapper, err, "failed to acquire cache key")
+	}
+	return created, nil
 }
 
 func (r *RedisClient) Get(key string, dest any) error {

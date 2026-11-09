@@ -24,7 +24,7 @@ const docTemplate = `{
     "paths": {
         "/v1/admin/llm/configuration": {
             "get": {
-                "description": "Returns active runtime LLM settings such as model, prompts, and parallel generation flag.",
+                "description": "Returns the active model and language prompts.",
                 "produces": [
                     "application/json"
                 ],
@@ -42,7 +42,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Updates runtime LLM settings such as model, prompts, and parallel generation flag.",
+                "description": "Updates the active model and language prompts.",
                 "consumes": [
                     "application/json"
                 ],
@@ -80,40 +80,116 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/llm/summaries": {
+        "/v1/llm/summaries/generations": {
             "post": {
-                "description": "Retrieves structured personal data (e.g., work experience, education), generates a professional summary using a large language model (LLM), and returns it in the requested language.",
+                "description": "Returns a current cached summary or starts missing and stale language summaries in parallel.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "summarizer"
                 ],
-                "summary": "Generate professional profile summary",
+                "summary": "Start or join summary generation",
                 "parameters": [
                     {
-                        "type": "string",
-                        "name": "lang",
-                        "in": "query"
+                        "description": "Requested language",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerationRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Generated professional summary",
+                        "description": "Current summary",
                         "schema": {
-                            "$ref": "#/definitions/dto.APIResponse"
+                            "$ref": "#/definitions/dto.SummaryResponse"
+                        }
+                    },
+                    "202": {
+                        "description": "Generation in progress",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SummaryResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid query parameters",
+                        "description": "Invalid request",
                         "schema": {
                             "$ref": "#/definitions/dto.APIResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error with error details",
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/dto.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/llm/summaries/{language}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "summarizer"
+                ],
+                "summary": "Get summary or generation status",
+                "parameters": [
+                    {
+                        "enum": [
+                            "en",
+                            "kk",
+                            "de"
+                        ],
+                        "type": "string",
+                        "description": "Language",
+                        "name": "language",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Generated summary",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SummaryResponse"
+                        }
+                    },
+                    "202": {
+                        "description": "Generation in progress",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SummaryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid language",
+                        "schema": {
+                            "$ref": "#/definitions/dto.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No summary or active generation",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SummaryResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.APIResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Generation failed",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SummaryResponse"
                         }
                     }
                 }
@@ -138,9 +214,6 @@ const docTemplate = `{
         "dto.ConfigurationRequest": {
             "type": "object",
             "properties": {
-                "enable_parallel_generation": {
-                    "type": "boolean"
-                },
                 "model": {
                     "type": "string"
                 },
@@ -158,9 +231,6 @@ const docTemplate = `{
         "dto.ConfigurationResponse": {
             "type": "object",
             "properties": {
-                "enable_parallel_generation": {
-                    "type": "boolean"
-                },
                 "model": {
                     "type": "string"
                 },
@@ -174,6 +244,38 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "system_prompt_kk": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GenerationRequest": {
+            "type": "object",
+            "required": [
+                "language"
+            ],
+            "properties": {
+                "language": {
+                    "type": "string",
+                    "example": "en"
+                }
+            }
+        },
+        "dto.SummaryResponse": {
+            "type": "object",
+            "properties": {
+                "language": {
+                    "type": "string",
+                    "example": "en"
+                },
+                "poll_after_ms": {
+                    "type": "integer",
+                    "example": 1500
+                },
+                "status": {
+                    "type": "string",
+                    "example": "generating"
+                },
+                "summary": {
                     "type": "string"
                 }
             }

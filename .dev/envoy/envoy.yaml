@@ -122,13 +122,10 @@ static_resources:
                           request_headers_to_remove: [x-user-id, x-user-name, x-user-email]
                           route: { cluster: llm_service, timeout: 15s }
                         - match:
-                            path: /v1/llm/summaries
-                            headers:
-                              - name: ":method"
-                                string_match: { exact: POST }
+                            prefix: /v1/llm/summaries
                           typed_per_filter_config: *public_route
                           request_headers_to_remove: [x-user-id, x-user-name, x-user-email]
-                          route: { cluster: llm_service, timeout: 600s }
+                          route: { cluster: llm_service, timeout: 15s }
                         - match: { prefix: / }
                           direct_response:
                             status: 404

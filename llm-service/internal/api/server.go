@@ -6,6 +6,7 @@ import (
 	"llm-service/configs"
 	"llm-service/internal/api/handlers"
 	"llm-service/internal/api/middleware"
+	"llm-service/internal/cache"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,9 +18,7 @@ import (
 )
 
 type Cache interface {
-	Set(key string, value any) error
-	Get(key string, dest any) error
-	Del(key string) error
+	cache.Cacher
 	Ping() error
 }
 

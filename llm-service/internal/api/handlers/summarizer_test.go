@@ -3,123 +3,62 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"llm-service/configs"
-	"llm-service/internal/model"
-	"llm-service/internal/summarizer"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"llm-service/configs"
+	"llm-service/internal/cache"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 )
 
-type summarizerCacheMock struct {
-	store map[string]string
-}
+type handlerCache struct{ store map[string][]byte }
 
-func newSummarizerCacheMock() *summarizerCacheMock {
-	return &summarizerCacheMock{store: make(map[string]string)}
-}
-
-func (m *summarizerCacheMock) Set(key string, value any) error {
+func newHandlerCache() *handlerCache                    { return &handlerCache{store: map[string][]byte{}} }
+func (m *handlerCache) Set(key string, value any) error { return m.SetWithTTL(key, value, 0) }
+func (m *handlerCache) SetWithTTL(key string, value any, _ time.Duration) error {
 	b, err := json.Marshal(value)
-	if err != nil {
-		return err
+	if err == nil {
+		m.store[key] = b
 	}
-	m.store[key] = string(b)
-	return nil
+	return err
 }
-
-func (m *summarizerCacheMock) Get(key string, dest any) error {
-	raw, ok := m.store[key]
+func (m *handlerCache) SetNX(key string, value any, _ time.Duration) (bool, error) {
+	if _, ok := m.store[key]; ok {
+		return false, nil
+	}
+	return true, m.Set(key, value)
+}
+func (m *handlerCache) Get(key string, dest any) error {
+	b, ok := m.store[key]
 	if !ok {
-		return fmt.Errorf("not found")
+		return fmt.Errorf("%w: missing", cache.ErrNotFound)
 	}
-	return json.Unmarshal([]byte(raw), dest)
+	return json.Unmarshal(b, dest)
 }
+func (m *handlerCache) Del(key string) error { delete(m.store, key); return nil }
+func (m *handlerCache) Ping() error          { return nil }
 
-func (m *summarizerCacheMock) Del(key string) error {
-	delete(m.store, key)
-	return nil
-}
-
-func (m *summarizerCacheMock) Ping() error { return nil }
-
-func TestGetSummarizer_Success(t *testing.T) {
-	original := summarizer.GetRuntimeConfig()
-	defer func() {
-		_ = summarizer.UpdateRuntimeConfig(summarizer.RuntimeConfigUpdate{
-			Model:                    &original.Model,
-			SystemPromptEN:           &original.SystemPromptEN,
-			SystemPromptDE:           &original.SystemPromptDE,
-			SystemPromptKK:           &original.SystemPromptKK,
-			EnableParallelGeneration: &original.EnableParallelGeneration,
-		})
-	}()
-
-	disableParallel := false
-	if err := summarizer.UpdateRuntimeConfig(summarizer.RuntimeConfigUpdate{
-		EnableParallelGeneration: &disableParallel,
-	}); err != nil {
-		t.Fatalf("failed to set runtime config: %v", err)
-	}
-
-	dataSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/work-experience", "/education", "/project", "/skill", "/certificate":
-			_ = json.NewEncoder(w).Encode([]map[string]any{})
-		default:
-			http.Error(w, "not found", http.StatusNotFound)
-		}
-	}))
-	defer dataSrv.Close()
-
-	llmSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resp := model.SummarizerAPIResponse{
-			Choices: []model.Choice{
-				{Message: model.Message{Content: "generated summary"}},
-			},
-		}
-		_ = json.NewEncoder(w).Encode(resp)
-	}))
-	defer llmSrv.Close()
-
-	cfg := &configs.Config{
-		Services: configs.ServicesConfig{
-			WorkExperienceURL: dataSrv.URL + "/work-experience",
-			EducationURL:      dataSrv.URL + "/education",
-			ProjectsURL:       dataSrv.URL + "/project",
-			SkillsURL:         dataSrv.URL + "/skill",
-			CertificatesURL:   dataSrv.URL + "/certificate",
-		},
-		Summarizer: configs.SummarizerConfig{
-			APIKey: "dummy-key",
-			APIURL: llmSrv.URL,
-		},
-	}
-
-	h := New(cfg, newSummarizerCacheMock())
-	r := ginTestRouter()
-	r.GET("/summarize", h.GetSummarizer)
-
-	req := httptest.NewRequest(http.MethodGet, "/summarize?lang=en", nil)
-	rec := httptest.NewRecorder()
-	r.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d, body=%s", rec.Code, rec.Body.String())
-	}
-
-	var got map[string]any
-	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
-	}
-	if got["message"] != "generated summary" {
-		t.Fatalf("unexpected message: %#v", got["message"])
-	}
-}
-
-func ginTestRouter() *gin.Engine {
+func TestGetSummaryMissing(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	return gin.New()
+	h := New(&configs.Config{}, newHandlerCache())
+	r := gin.New()
+	r.GET("/summaries/:language", h.GetSummary)
+	recorder := httptest.NewRecorder()
+	r.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/summaries/en", nil))
+	require.Equal(t, http.StatusNotFound, recorder.Code)
+	require.Contains(t, recorder.Body.String(), `"status":"missing"`)
+}
+
+func TestGetSummaryRejectsInvalidLanguage(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	h := New(&configs.Config{}, newHandlerCache())
+	r := gin.New()
+	r.GET("/summaries/:language", h.GetSummary)
+	recorder := httptest.NewRecorder()
+	r.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/summaries/fr", nil))
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
 }

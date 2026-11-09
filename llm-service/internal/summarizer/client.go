@@ -11,6 +11,15 @@ import (
 	"strings"
 )
 
+type UpstreamError struct {
+	Status int
+	Body   string
+}
+
+func (e *UpstreamError) Error() string {
+	return fmt.Sprintf("summarizer API returned HTTP %d: %s", e.Status, e.Body)
+}
+
 // sends a request to the summarizer API with the given payload and headers and returns the response
 func (s *Summarizer) doLLMRequest(ctx context.Context, payload map[string]interface{}, headers map[string]string) (*model.SummarizerAPIResponse, error) {
 	payloadBytes, err := json.Marshal(payload)
@@ -34,7 +43,7 @@ func (s *Summarizer) doLLMRequest(ctx context.Context, payload map[string]interf
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("summarizer API error: %s", string(bodyBytes))
+		return nil, &UpstreamError{Status: resp.StatusCode, Body: strings.TrimSpace(string(bodyBytes))}
 	}
 
 	result := &model.SummarizerAPIResponse{}
@@ -86,23 +95,23 @@ func (s *Summarizer) fetchAllData(ctx context.Context) (*model.PersonalData, err
 		}
 
 		switch key {
-		case "work-experience":
+		case "work-experiences":
 			if err := json.Unmarshal(bodyBytes, &pd.WorkExperience); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal work-experience: %w", err)
+				return nil, fmt.Errorf("failed to unmarshal work-experiences: %w", err)
 			}
-		case "education":
+		case "education-records":
 			if err := json.Unmarshal(bodyBytes, &pd.Education); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal education: %w", err)
+				return nil, fmt.Errorf("failed to unmarshal education-records: %w", err)
 			}
-		case "project":
+		case "projects":
 			if err := json.Unmarshal(bodyBytes, &pd.Projects); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal projects: %w", err)
 			}
-		case "skill":
+		case "skills":
 			if err := json.Unmarshal(bodyBytes, &pd.Skills); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal skills: %w", err)
 			}
-		case "certificate":
+		case "certificates":
 			if err := json.Unmarshal(bodyBytes, &pd.Certificates); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal certificates: %w", err)
 			}

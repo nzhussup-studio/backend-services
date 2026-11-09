@@ -1077,8 +1077,7 @@ paths:
           type: string
   "/v1/admin/llm/configuration":
     get:
-      description: Returns active runtime LLM settings such as model, prompts, and
-        parallel generation flag.
+      description: Returns the active model and language prompts.
       responses:
         '200':
           description: Current configuration
@@ -1090,8 +1089,7 @@ paths:
       tags:
       - configuration
     put:
-      description: Updates runtime LLM settings such as model, prompts, and parallel
-        generation flag.
+      description: Updates the active model and language prompts.
       responses:
         '200':
           description: Updated configuration
@@ -1115,38 +1113,98 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/llm_service_dto.ConfigurationRequest"
-  "/v1/llm/summaries":
-    post:
-      description: Retrieves structured personal data (e.g., work experience, education),
-        generates a professional summary using a large language model (LLM), and returns
-        it in the requested language.
+  "/v1/llm/summaries/{language}":
+    get:
       responses:
         '200':
-          description: Generated professional summary
+          description: Generated summary
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.SummaryResponse"
+        '202':
+          description: Generation in progress
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.SummaryResponse"
+        '400':
+          description: Invalid language
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/llm_service_dto.APIResponse"
+        '404':
+          description: No summary or active generation
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.SummaryResponse"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.APIResponse"
+        '503':
+          description: Generation failed
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.SummaryResponse"
+      summary: Get summary or generation status
+      tags:
+      - summarizer
+      parameters:
+      - description: Language
+        in: path
+        name: language
+        required: true
+        schema:
+          type: string
+          enum:
+          - en
+          - kk
+          - de
+  "/v1/llm/summaries/generations":
+    post:
+      description: Returns a current cached summary or starts missing and stale language
+        summaries in parallel.
+      responses:
+        '200':
+          description: Current summary
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.SummaryResponse"
+        '202':
+          description: Generation in progress
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/llm_service_dto.SummaryResponse"
         '400':
-          description: Invalid query parameters
+          description: Invalid request
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/llm_service_dto.APIResponse"
         '500':
-          description: Internal server error with error details
+          description: Internal server error
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/llm_service_dto.APIResponse"
-      summary: Generate professional profile summary
+      summary: Start or join summary generation
       tags:
       - summarizer
-      parameters:
-      - in: query
-        name: lang
-        schema:
-          type: string
+      requestBody:
+        required: true
+        description: Requested language
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/llm_service_dto.GenerationRequest"
   "/v1/me/account":
     delete:
       description: Logs out and deletes the current Keycloak user identified by the
@@ -1418,8 +1476,6 @@ components:
       type: object
     llm_service_dto.ConfigurationRequest:
       properties:
-        enable_parallel_generation:
-          type: boolean
         model:
           type: string
         system_prompt_de:
@@ -1431,8 +1487,6 @@ components:
       type: object
     llm_service_dto.ConfigurationResponse:
       properties:
-        enable_parallel_generation:
-          type: boolean
         model:
           type: string
         status:
@@ -1442,6 +1496,28 @@ components:
         system_prompt_en:
           type: string
         system_prompt_kk:
+          type: string
+      type: object
+    llm_service_dto.GenerationRequest:
+      properties:
+        language:
+          example: en
+          type: string
+      required:
+      - language
+      type: object
+    llm_service_dto.SummaryResponse:
+      properties:
+        language:
+          example: en
+          type: string
+        poll_after_ms:
+          example: 1500
+          type: integer
+        status:
+          example: generating
+          type: string
+        summary:
           type: string
       type: object
     account_service_model.ErrorResponse:

@@ -6,16 +6,14 @@ import (
 )
 
 func strPtr(v string) *string { return &v }
-func boolPtr(v bool) *bool    { return &v }
 
 func restoreRuntimeConfig(t *testing.T, cfg RuntimeConfig) {
 	t.Helper()
 	err := UpdateRuntimeConfig(RuntimeConfigUpdate{
-		Model:                    strPtr(cfg.Model),
-		SystemPromptEN:           strPtr(cfg.SystemPromptEN),
-		SystemPromptDE:           strPtr(cfg.SystemPromptDE),
-		SystemPromptKK:           strPtr(cfg.SystemPromptKK),
-		EnableParallelGeneration: boolPtr(cfg.EnableParallelGeneration),
+		Model:          strPtr(cfg.Model),
+		SystemPromptEN: strPtr(cfg.SystemPromptEN),
+		SystemPromptDE: strPtr(cfg.SystemPromptDE),
+		SystemPromptKK: strPtr(cfg.SystemPromptKK),
 	})
 	if err != nil {
 		t.Fatalf("failed to restore runtime config: %v", err)
@@ -30,14 +28,11 @@ func TestRuntimeConfig_UpdateSuccess(t *testing.T) {
 	promptEN := "EN prompt override"
 	promptDE := "DE prompt override"
 	promptKK := "KK prompt override"
-	parallel := false
-
 	err := UpdateRuntimeConfig(RuntimeConfigUpdate{
-		Model:                    &model,
-		SystemPromptEN:           &promptEN,
-		SystemPromptDE:           &promptDE,
-		SystemPromptKK:           &promptKK,
-		EnableParallelGeneration: &parallel,
+		Model:          &model,
+		SystemPromptEN: &promptEN,
+		SystemPromptDE: &promptDE,
+		SystemPromptKK: &promptKK,
 	})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
@@ -49,9 +44,6 @@ func TestRuntimeConfig_UpdateSuccess(t *testing.T) {
 	}
 	if cfg.SystemPromptEN != promptEN || cfg.SystemPromptDE != promptDE || cfg.SystemPromptKK != promptKK {
 		t.Fatalf("prompt overrides were not applied")
-	}
-	if cfg.EnableParallelGeneration != parallel {
-		t.Fatalf("expected parallel=%v, got %v", parallel, cfg.EnableParallelGeneration)
 	}
 }
 

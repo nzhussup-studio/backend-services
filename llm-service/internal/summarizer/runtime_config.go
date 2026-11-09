@@ -16,19 +16,17 @@ const (
 )
 
 type RuntimeConfig struct {
-	Model                    string
-	SystemPromptEN           string
-	SystemPromptDE           string
-	SystemPromptKK           string
-	EnableParallelGeneration bool
+	Model          string
+	SystemPromptEN string
+	SystemPromptDE string
+	SystemPromptKK string
 }
 
 type RuntimeConfigUpdate struct {
-	Model                    *string
-	SystemPromptEN           *string
-	SystemPromptDE           *string
-	SystemPromptKK           *string
-	EnableParallelGeneration *bool
+	Model          *string
+	SystemPromptEN *string
+	SystemPromptDE *string
+	SystemPromptKK *string
 }
 
 var runtimeConfig = struct {
@@ -36,11 +34,10 @@ var runtimeConfig = struct {
 	cfg RuntimeConfig
 }{
 	cfg: RuntimeConfig{
-		Model:                    defaultModelID,
-		SystemPromptEN:           SYSTEM_PROMPT_EN,
-		SystemPromptDE:           SYSTEM_PROMPT_DE,
-		SystemPromptKK:           SYSTEM_PROMPT_KK,
-		EnableParallelGeneration: true,
+		Model:          defaultModelID,
+		SystemPromptEN: SYSTEM_PROMPT_EN,
+		SystemPromptDE: SYSTEM_PROMPT_DE,
+		SystemPromptKK: SYSTEM_PROMPT_KK,
 	},
 }
 
@@ -95,8 +92,6 @@ func InitRuntimeConfigStore(store cache.Cacher) error {
 	if strings.TrimSpace(persisted.SystemPromptKK) != "" {
 		cfg.SystemPromptKK = strings.TrimSpace(persisted.SystemPromptKK)
 	}
-	cfg.EnableParallelGeneration = persisted.EnableParallelGeneration
-
 	runtimeConfig.cfg = cfg
 	return nil
 }
@@ -105,8 +100,7 @@ func UpdateRuntimeConfig(update RuntimeConfigUpdate) error {
 	if update.Model == nil &&
 		update.SystemPromptEN == nil &&
 		update.SystemPromptDE == nil &&
-		update.SystemPromptKK == nil &&
-		update.EnableParallelGeneration == nil {
+		update.SystemPromptKK == nil {
 		return fmt.Errorf("at least one configuration field must be provided")
 	}
 
@@ -167,10 +161,6 @@ func UpdateRuntimeConfig(update RuntimeConfigUpdate) error {
 
 	if update.SystemPromptKK != nil {
 		runtimeConfig.cfg.SystemPromptKK = promptKK
-	}
-
-	if update.EnableParallelGeneration != nil {
-		runtimeConfig.cfg.EnableParallelGeneration = *update.EnableParallelGeneration
 	}
 
 	updated := runtimeConfig.cfg

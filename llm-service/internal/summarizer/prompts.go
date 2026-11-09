@@ -45,11 +45,11 @@ Die Zusammenfassung sollte:
 )
 
 // generates system and user prompts based on the personal data
-func (s *Summarizer) getPromptBase(pd *model.PersonalData) (string, string, error) {
+func getPromptBase(lang string, pd *model.PersonalData) (string, string, error) {
 	cfg := GetRuntimeConfig()
 
 	systemPrompt := cfg.SystemPromptEN
-	switch s.lang {
+	switch lang {
 	case "en":
 		systemPrompt = cfg.SystemPromptEN
 	case "de":
@@ -57,7 +57,7 @@ func (s *Summarizer) getPromptBase(pd *model.PersonalData) (string, string, erro
 	case "kk":
 		systemPrompt = cfg.SystemPromptKK
 	default:
-		slog.Warn("unsupported language, defaulting to English prompt", slog.String("lang", s.lang))
+		slog.Warn("unsupported language, defaulting to English prompt", slog.String("lang", lang))
 	}
 
 	dataJSON, err := json.MarshalIndent(pd, "", "  ")

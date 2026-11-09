@@ -10,7 +10,7 @@ import (
 
 // GetConfiguration godoc
 // @Summary      Get current LLM configuration
-// @Description  Returns active runtime LLM settings such as model, prompts, and parallel generation flag.
+// @Description  Returns the active model and language prompts.
 // @Tags         configuration
 // @Produce      json
 // @Success      200  {object}  dto.ConfigurationResponse  "Current configuration"
@@ -18,18 +18,17 @@ import (
 func (h *Handler) GetConfiguration(ctx *gin.Context) {
 	cfg := summarizer.GetRuntimeConfig()
 	ctx.JSON(http.StatusOK, dto.ConfigurationResponse{
-		Status:                   http.StatusOK,
-		Model:                    cfg.Model,
-		SystemPromptEN:           cfg.SystemPromptEN,
-		SystemPromptDE:           cfg.SystemPromptDE,
-		SystemPromptKK:           cfg.SystemPromptKK,
-		EnableParallelGeneration: cfg.EnableParallelGeneration,
+		Status:         http.StatusOK,
+		Model:          cfg.Model,
+		SystemPromptEN: cfg.SystemPromptEN,
+		SystemPromptDE: cfg.SystemPromptDE,
+		SystemPromptKK: cfg.SystemPromptKK,
 	})
 }
 
 // PutConfiguration godoc
 // @Summary      Update LLM configuration
-// @Description  Updates runtime LLM settings such as model, prompts, and parallel generation flag.
+// @Description  Updates the active model and language prompts.
 // @Tags         configuration
 // @Accept       json
 // @Produce      json
@@ -49,11 +48,10 @@ func (h *Handler) PutConfiguration(ctx *gin.Context) {
 	}
 
 	update := summarizer.RuntimeConfigUpdate{
-		Model:                    req.Model,
-		SystemPromptEN:           req.SystemPromptEN,
-		SystemPromptDE:           req.SystemPromptDE,
-		SystemPromptKK:           req.SystemPromptKK,
-		EnableParallelGeneration: req.EnableParallelGeneration,
+		Model:          req.Model,
+		SystemPromptEN: req.SystemPromptEN,
+		SystemPromptDE: req.SystemPromptDE,
+		SystemPromptKK: req.SystemPromptKK,
 	}
 
 	if err := summarizer.UpdateRuntimeConfig(update); err != nil {
@@ -67,11 +65,10 @@ func (h *Handler) PutConfiguration(ctx *gin.Context) {
 
 	cfg := summarizer.GetRuntimeConfig()
 	ctx.JSON(http.StatusOK, dto.ConfigurationResponse{
-		Status:                   http.StatusOK,
-		Model:                    cfg.Model,
-		SystemPromptEN:           cfg.SystemPromptEN,
-		SystemPromptDE:           cfg.SystemPromptDE,
-		SystemPromptKK:           cfg.SystemPromptKK,
-		EnableParallelGeneration: cfg.EnableParallelGeneration,
+		Status:         http.StatusOK,
+		Model:          cfg.Model,
+		SystemPromptEN: cfg.SystemPromptEN,
+		SystemPromptDE: cfg.SystemPromptDE,
+		SystemPromptKK: cfg.SystemPromptKK,
 	})
 }

@@ -26,8 +26,7 @@ func TestPrompts_getPromptBase(t *testing.T) {
 	pd := &model.PersonalData{}
 
 	t.Run("selects german prompt for de", func(t *testing.T) {
-		s := &Summarizer{lang: "de"}
-		systemPrompt, userPrompt, err := s.getPromptBase(pd)
+		systemPrompt, userPrompt, err := getPromptBase("de", pd)
 
 		require.NoError(t, err)
 		require.Equal(t, customDE, systemPrompt)
@@ -35,8 +34,7 @@ func TestPrompts_getPromptBase(t *testing.T) {
 	})
 
 	t.Run("falls back to english for unsupported language", func(t *testing.T) {
-		s := &Summarizer{lang: "fr"}
-		systemPrompt, userPrompt, err := s.getPromptBase(pd)
+		systemPrompt, userPrompt, err := getPromptBase("fr", pd)
 
 		require.NoError(t, err)
 		require.Equal(t, customEN, systemPrompt)
@@ -45,8 +43,7 @@ func TestPrompts_getPromptBase(t *testing.T) {
 
 	t.Run("includes personal data json in user prompt", func(t *testing.T) {
 		company := "OpenAI"
-		s := &Summarizer{lang: "en"}
-		systemPrompt, userPrompt, err := s.getPromptBase(&model.PersonalData{
+		systemPrompt, userPrompt, err := getPromptBase("en", &model.PersonalData{
 			WorkExperience: []*model.WorkExperience{
 				{Company: company},
 			},

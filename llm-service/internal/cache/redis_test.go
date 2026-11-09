@@ -22,6 +22,11 @@ func (m *MockRedisClient) Set(ctx context.Context, key string, value any, expira
 	return args.Get(0).(*redis.StatusCmd)
 }
 
+func (m *MockRedisClient) SetNX(ctx context.Context, key string, value any, expiration time.Duration) *redis.BoolCmd {
+	args := m.Called(ctx, key, value, expiration)
+	return args.Get(0).(*redis.BoolCmd)
+}
+
 func (m *MockRedisClient) Get(ctx context.Context, key string) *redis.StringCmd {
 	args := m.Called(ctx, key)
 	return args.Get(0).(*redis.StringCmd)
