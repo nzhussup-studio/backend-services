@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultModelID        = "nvidia/nemotron-3-ultra-550b-a55b:free"
+	defaultModelID        = "openrouter/free"
 	maxPromptChars        = 8000
 	runtimeConfigCacheKey = "llm_runtime_config"
 )
