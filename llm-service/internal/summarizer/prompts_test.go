@@ -30,7 +30,7 @@ func TestPrompts_getPromptBase(t *testing.T) {
 
 		require.NoError(t, err)
 		require.Equal(t, customDE, systemPrompt)
-		require.Contains(t, userPrompt, "structured profile data")
+		require.Contains(t, userPrompt, "Profile data (JSON)")
 	})
 
 	t.Run("falls back to english for unsupported language", func(t *testing.T) {
