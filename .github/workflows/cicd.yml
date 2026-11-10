@@ -20,6 +20,7 @@ jobs:
     name: Prepare Matrix
     runs-on: ubuntu-latest
     outputs:
+      build_changed: ${{ steps.prepare.outputs.build_changed }}
       build_matrix: ${{ steps.prepare.outputs.build_matrix }}
       checked_changed: ${{ steps.prepare.outputs.checked_changed }}
       checked_matrix: ${{ steps.prepare.outputs.checked_matrix }}
@@ -27,10 +28,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Build service matrix
         id: prepare
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before || '' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: python3 .github/scripts/prepare_matrix.py
 
   quality:
@@ -83,6 +91,8 @@ jobs:
       always() &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
+      needs.prepare.outputs.build_changed == 'true' &&
+      (needs.quality.result == 'success' || needs.quality.result == 'skipped') &&
       (needs.test.result == 'success' || needs.test.result == 'skipped')
     strategy:
       fail-fast: false
