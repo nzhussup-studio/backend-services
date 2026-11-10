@@ -52,7 +52,11 @@ func (s *uploadJobService) StartUpload(albumID string, files []*multipart.FileHe
 		return nil, custom_errors.NewError(custom_errors.ErrConflict, "another upload is already processing; try again when it finishes")
 	}
 
-	inputs := uploadInputsFromFileHeaders(files)
+	inputs, err := openUploadInputs(files)
+	if err != nil {
+		<-s.queue
+		return nil, err
+	}
 
 	job := &UploadJob{
 		ID:        uuid.NewString(),
@@ -96,20 +100,37 @@ func (s *uploadJobService) StartUpload(albumID string, files []*multipart.FileHe
 	return job, nil
 }
 
-// uploadInputsFromFileHeaders opens Gin's existing multipart staging files
-// directly. The background job owns multipart cleanup, avoiding a second
-// sequential copy of the complete upload before the 202 response.
-func uploadInputsFromFileHeaders(files []*multipart.FileHeader) []uploadInput {
+// openUploadInputs retains open handles to Gin's multipart staging files before
+// the request returns. This lets request cleanup unlink the temporary files
+// without invalidating the background job and avoids copying the upload again.
+func openUploadInputs(files []*multipart.FileHeader) ([]uploadInput, error) {
 	inputs := make([]uploadInput, len(files))
+	opened := make([]io.Closer, 0, len(files))
+	closeOpened := func() {
+		for _, file := range opened {
+			_ = file.Close()
+		}
+	}
 	for index, file := range files {
+		contentType := file.Header.Get("Content-Type")
+		if _, ok := model.AllowedTypes[model.ImageType(contentType)]; !ok {
+			closeOpened()
+			return nil, custom_errors.NewError(custom_errors.ErrBadRequest, fmt.Sprintf("invalid image type: %s. Only JPEG, PNG, and HEIC are allowed", contentType))
+		}
+		retainedFile, err := file.Open()
+		if err != nil {
+			closeOpened()
+			return nil, custom_errors.NewError(custom_errors.ErrInternalServer, "failed to open image file")
+		}
+		opened = append(opened, retainedFile)
 		inputs[index] = uploadInput{
-			contentType: file.Header.Get("Content-Type"),
+			contentType: contentType,
 			open: func() (io.ReadCloser, error) {
-				return file.Open()
+				return retainedFile, nil
 			},
 		}
 	}
-	return inputs
+	return inputs, nil
 }
 
 func (s *uploadJobService) GetUploadStatus(albumID string, jobID string) (*UploadJob, error) {
