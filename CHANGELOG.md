@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/nzhussup-studio/backend-services/compare/v1.5.0...v1.6.0) (2026-11-10)
+
+
+### Features
+
+* account for redirect cases and add health endpoints where needed ([00c95cc](https://github.com/nzhussup-studio/backend-services/commit/00c95cc83d7b0ccd880b963e14b77c186d9e3215))
+* add configuration endpoint for llm ([0d7d303](https://github.com/nzhussup-studio/backend-services/commit/0d7d303a8dd923d4fa660cb181c179ec8d71831f))
+* add custom login page ([bc43050](https://github.com/nzhussup-studio/backend-services/commit/bc43050917955d94f23ecabd81b2612349a9e855))
+* add github fetched descriptions into the base-service ([0459cb7](https://github.com/nzhussup-studio/backend-services/commit/0459cb76d7bda398896137d07b282626ccbe2e65))
+* add optional issuer in certificates ([bc6c20e](https://github.com/nzhussup-studio/backend-services/commit/bc6c20ec8945a437acdc418238c72a3ede64ca89))
+* remove .com references ([0134ee6](https://github.com/nzhussup-studio/backend-services/commit/0134ee65d68913b3c92669859da0d2e3a3d8a1ee))
+* update default llm model ([158e519](https://github.com/nzhussup-studio/backend-services/commit/158e51905be29c554f5f8fba60b5400defd04ca7))
+
+
+### Bug Fixes
+
+* add another cors url for envoy to support 2 frontends simultaneously ([bb159f5](https://github.com/nzhussup-studio/backend-services/commit/bb159f5e1f8fabd0d55245822b3c9e76d7bfd70f))
+* caching empty project desc responses ([a2d04e0](https://github.com/nzhussup-studio/backend-services/commit/a2d04e0167004f495e79e792f6412abbea9221d7))
+* change default model ([6da9d2f](https://github.com/nzhussup-studio/backend-services/commit/6da9d2f128aa050c84a2d6ee35c02d4354752853))
+* concurrency bug in image service ([2676d5f](https://github.com/nzhussup-studio/backend-services/commit/2676d5f708dc39ee935a2475f2ade561179b8bed))
+* fix concurrency multipart error with introducing temporary save ([a03edfd](https://github.com/nzhussup-studio/backend-services/commit/a03edfdc2646be2b9e07c328a9323f9670ee82f8))
+* keycloak dockerfile ([80a1666](https://github.com/nzhussup-studio/backend-services/commit/80a166609eef45b09c7210d0de20abb1b8b8d609))
+* llm-service html validation ([4ffad98](https://github.com/nzhussup-studio/backend-services/commit/4ffad985637047e6e75d1d80796c73124443ef7a))
+* replace KZ lang code to KK ([3a59fa6](https://github.com/nzhussup-studio/backend-services/commit/3a59fa601fd68e05cf1b256de888e198ad33ba0c))
+
 ## [1.5.0](https://github.com/nzhussup-studio/backend-services/compare/v1.4.0...v1.5.0) (2026-04-02)
 
 
