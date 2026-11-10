@@ -16,6 +16,7 @@ import (
 	"net/textproto"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -202,8 +203,12 @@ func TestUploadImage_ConcurrentSuccess(t *testing.T) {
 	for i := range savedImages {
 		savedImages[i] = &model.Image{ID: fmt.Sprintf("some-id-%d", i)}
 	}
+	var completed atomic.Int32
 	mockImageRepo.
 		On("UploadBatch", "album1", mock.AnythingOfType("[]*model.Image")).
+		Run(func(_ mock.Arguments) {
+			assert.Equal(t, int32(numFiles), completed.Load(), "progress should update as each image finishes processing")
+		}).
 		Return(savedImages, nil)
 
 	// Mock Redis Set and Del
@@ -213,9 +218,12 @@ func TestUploadImage_ConcurrentSuccess(t *testing.T) {
 
 	mockRedis.On("Del", "album_album1").Return()
 
-	images, err := svc.UploadImage("album1", files)
+	images, err := svc.uploadImage("album1", files, func() {
+		completed.Add(1)
+	})
 	assert.NoError(t, err)
 	assert.Len(t, images, numFiles)
+	assert.Equal(t, int32(numFiles), completed.Load())
 	mockImageRepo.AssertExpectations(t)
 	mockRedis.AssertExpectations(t)
 }

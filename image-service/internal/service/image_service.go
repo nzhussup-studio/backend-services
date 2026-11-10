@@ -111,6 +111,9 @@ func (s *ImageService) uploadInputs(albumID string, inputs []uploadInput, progre
 			image.Data = compressedData
 
 			processedImages[index] = image
+			if progress != nil {
+				progress()
+			}
 		}(index, input)
 	}
 
@@ -129,9 +132,6 @@ func (s *ImageService) uploadInputs(albumID string, inputs []uploadInput, progre
 		cacheKey := fmt.Sprintf("image:%s:%s", albumID, savedImage.ID)
 		cacheValue := fmt.Sprintf("%s/%s/%s", s.storage.Path, albumID, savedImage.ID)
 		s.redis.Set(cacheKey, cacheValue)
-		if progress != nil {
-			progress()
-		}
 	}
 
 	s.redis.Del(fmt.Sprintf("album_%s", albumID))
