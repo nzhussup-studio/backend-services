@@ -15,16 +15,18 @@ type ImageRepository struct {
 }
 
 func (i *ImageRepository) Upload(albumID string, image *model.Image) (*model.Image, error) {
-	var imageID string
-	var imagePath string
+	images, err := i.UploadBatch(albumID, []*model.Image{image})
+	if err != nil {
+		return nil, err
+	}
+	return images[0], nil
+}
 
-	for {
-		imageID = utils.GenerateUUID()
-		extension := "." + strings.Split(string(image.Type), "/")[1]
-		imagePath = filepath.Join(i.Path, albumID, imageID+extension)
-		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
-			break
-		}
+// UploadBatch persists a complete upload under one album lock and updates the
+// album image count once, rather than rewriting meta.json for every image.
+func (i *ImageRepository) UploadBatch(albumID string, images []*model.Image) ([]*model.Image, error) {
+	if len(images) == 0 {
+		return []*model.Image{}, nil
 	}
 
 	albumPath := filepath.Join(i.Path, albumID)
@@ -38,14 +40,8 @@ func (i *ImageRepository) Upload(albumID string, image *model.Image) (*model.Ima
 	lock.Lock()
 	defer lock.Unlock()
 
-	err := os.MkdirAll(filepath.Dir(imagePath), os.ModePerm)
-	if err != nil {
+	if err := os.MkdirAll(albumPath, os.ModePerm); err != nil {
 		return nil, custom_errors.NewError(custom_errors.ErrInternalServer, "failed to create image directory")
-	}
-
-	err = os.WriteFile(imagePath, image.Data, os.ModePerm)
-	if err != nil {
-		return nil, custom_errors.NewError(custom_errors.ErrInternalServer, "failed to save image data")
 	}
 
 	metaData, err := utils.LoadMetaData(metaDataPath)
@@ -53,16 +49,48 @@ func (i *ImageRepository) Upload(albumID string, image *model.Image) (*model.Ima
 		return nil, err
 	}
 
-	err = utils.IncrementImageCountMeta(metaDataPath, metaData, 1)
-	if err != nil {
+	type pendingImage struct {
+		image *model.Image
+		id    string
+	}
+	pending := make([]pendingImage, len(images))
+	writtenPaths := make([]string, 0, len(images))
+	rollback := func() {
+		for _, path := range writtenPaths {
+			_ = os.Remove(path)
+		}
+	}
+
+	for index, image := range images {
+		extension := "." + strings.Split(string(image.Type), "/")[1]
+		var imagePath string
+		for {
+			imagePath = filepath.Join(albumPath, utils.GenerateUUID()+extension)
+			if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+				break
+			}
+		}
+		if err := os.WriteFile(imagePath, image.Data, os.ModePerm); err != nil {
+			rollback()
+			return nil, custom_errors.NewError(custom_errors.ErrInternalServer, "failed to save image data")
+		}
+		writtenPaths = append(writtenPaths, imagePath)
+		pending[index] = pendingImage{image: image, id: filepath.Base(imagePath)}
+	}
+
+	if err := utils.IncrementImageCountMeta(metaDataPath, metaData, len(images)); err != nil {
+		rollback()
 		return nil, err
 	}
 
-	image.ID = filepath.Base(imagePath)
-	image.Data = nil
-	image.URL = filepath.Join(i.ApiBasePath, albumID, "images", image.ID)
-
-	return image, nil
+	saved := make([]*model.Image, len(pending))
+	for index, item := range pending {
+		item.image.ID = item.id
+		item.image.Data = nil
+		item.image.URL = filepath.Join(i.ApiBasePath, albumID, "images", item.id)
+		saved[index] = item.image
+	}
+	return saved, nil
 }
 
 func (i *ImageRepository) Rename(albumID string, imageID string, newName string) (*model.Image, error) {

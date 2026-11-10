@@ -42,7 +42,9 @@ func CompressImage(data []byte, extension string, resizeWidth uint, jpegQuality 
 		targetExt = "jpeg"
 	}
 
-	compressedImage := resize.Resize(resizeWidth, 0, img, resize.Lanczos3)
+	// Bilinear is a better fit for the web-sized 800px output than the much
+	// more CPU-intensive six-tap Lanczos filter, especially for batch uploads.
+	compressedImage := resize.Resize(resizeWidth, 0, img, resize.Bilinear)
 
 	var buf bytes.Buffer
 

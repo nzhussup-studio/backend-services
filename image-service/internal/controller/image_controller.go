@@ -44,11 +44,18 @@ func (ctrl *ImageController) Upload(c *gin.Context) {
 	}
 
 	if ctrl.service.AsyncImageService != nil {
-		job, err := ctrl.service.AsyncImageService.StartUpload(albumID, files)
+		cleanupTransferred := false
+		defer func() {
+			if !cleanupTransferred {
+				_ = form.RemoveAll()
+			}
+		}()
+		job, err := ctrl.service.AsyncImageService.StartUpload(albumID, files, form.RemoveAll)
 		if err != nil {
 			custom_errors.MapErrors(c, err)
 			return
 		}
+		cleanupTransferred = true
 		customJson.ConstructJsonResponseSuccess(c, job, http.StatusAccepted, "Upload accepted for background processing")
 		return
 	}

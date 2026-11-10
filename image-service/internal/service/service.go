@@ -31,7 +31,7 @@ type Service struct {
 		ServeImage(string, string) (string, error)
 	}
 	AsyncImageService interface {
-		StartUpload(string, []*multipart.FileHeader) (*UploadJob, error)
+		StartUpload(string, []*multipart.FileHeader, func() error) (*UploadJob, error)
 		GetUploadStatus(string, string) (*UploadJob, error)
 	}
 	CacheService interface {

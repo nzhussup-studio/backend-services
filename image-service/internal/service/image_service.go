@@ -52,10 +52,9 @@ func (s *ImageService) uploadImage(albumID string, files []*multipart.FileHeader
 
 func (s *ImageService) uploadInputs(albumID string, inputs []uploadInput, progress func()) ([]*model.Image, error) {
 	var (
-		savedImages = make([]*model.Image, len(inputs))
-		mu          sync.Mutex
-		wg          sync.WaitGroup
-		errChan     = make(chan error, len(inputs))
+		processedImages = make([]*model.Image, len(inputs))
+		wg              sync.WaitGroup
+		errChan         = make(chan error, len(inputs))
 	)
 	concurrency := s.cfg.MaxConcurrentUploads
 	if concurrency < 1 {
@@ -111,22 +110,7 @@ func (s *ImageService) uploadInputs(albumID string, inputs []uploadInput, progre
 			image.Type = mimeTypeFromExtension(finalExt)
 			image.Data = compressedData
 
-			savedImage, err := s.storage.Image.Upload(albumID, image)
-			if err != nil {
-				errChan <- err
-				return
-			}
-
-			cacheKey := fmt.Sprintf("image:%s:%s", albumID, savedImage.ID)
-			cacheValue := fmt.Sprintf("%s/%s/%s", s.storage.Path, albumID, savedImage.ID)
-			s.redis.Set(cacheKey, cacheValue)
-
-			mu.Lock()
-			savedImages[index] = savedImage
-			mu.Unlock()
-			if progress != nil {
-				progress()
-			}
+			processedImages[index] = image
 		}(index, input)
 	}
 
@@ -135,6 +119,19 @@ func (s *ImageService) uploadInputs(albumID string, inputs []uploadInput, progre
 
 	if len(errChan) > 0 {
 		return nil, <-errChan
+	}
+
+	savedImages, err := s.storage.Image.UploadBatch(albumID, processedImages)
+	if err != nil {
+		return nil, err
+	}
+	for _, savedImage := range savedImages {
+		cacheKey := fmt.Sprintf("image:%s:%s", albumID, savedImage.ID)
+		cacheValue := fmt.Sprintf("%s/%s/%s", s.storage.Path, albumID, savedImage.ID)
+		s.redis.Set(cacheKey, cacheValue)
+		if progress != nil {
+			progress()
+		}
 	}
 
 	s.redis.Del(fmt.Sprintf("album_%s", albumID))

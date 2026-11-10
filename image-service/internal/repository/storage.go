@@ -17,6 +17,7 @@ type Storage struct {
 	}
 	Image interface {
 		Upload(string, *model.Image) (*model.Image, error)
+		UploadBatch(string, []*model.Image) ([]*model.Image, error)
 		Rename(string, string, string) (*model.Image, error)
 		Delete(string, string) error
 	}

@@ -8,7 +8,6 @@ import (
 	"image-service/internal/repository"
 	"io"
 	"mime/multipart"
-	"os"
 	"sync"
 	"time"
 
@@ -42,7 +41,7 @@ func NewUploadJobService(storage *repository.Storage, redis cache.RedisClientInt
 	}
 }
 
-func (s *uploadJobService) StartUpload(albumID string, files []*multipart.FileHeader) (*UploadJob, error) {
+func (s *uploadJobService) StartUpload(albumID string, files []*multipart.FileHeader, cleanup func() error) (*UploadJob, error) {
 	if err := validateUpload(files, s.imageService.cfg); err != nil {
 		return nil, err
 	}
@@ -53,11 +52,7 @@ func (s *uploadJobService) StartUpload(albumID string, files []*multipart.FileHe
 		return nil, custom_errors.NewError(custom_errors.ErrConflict, "another upload is already processing; try again when it finishes")
 	}
 
-	inputs, cleanup, err := snapshotUploadFiles(files)
-	if err != nil {
-		<-s.queue
-		return nil, err
-	}
+	inputs := uploadInputsFromFileHeaders(files)
 
 	job := &UploadJob{
 		ID:        uuid.NewString(),
@@ -72,7 +67,11 @@ func (s *uploadJobService) StartUpload(albumID string, files []*multipart.FileHe
 
 	go func() {
 		defer func() { <-s.queue }()
-		defer cleanup()
+		defer func() {
+			if cleanup != nil {
+				_ = cleanup()
+			}
+		}()
 		s.update(job.ID, func(current *UploadJob) {
 			current.Status = "processing"
 		})
@@ -97,49 +96,20 @@ func (s *uploadJobService) StartUpload(albumID string, files []*multipart.FileHe
 	return job, nil
 }
 
-func snapshotUploadFiles(files []*multipart.FileHeader) ([]uploadInput, func(), error) {
+// uploadInputsFromFileHeaders opens Gin's existing multipart staging files
+// directly. The background job owns multipart cleanup, avoiding a second
+// sequential copy of the complete upload before the 202 response.
+func uploadInputsFromFileHeaders(files []*multipart.FileHeader) []uploadInput {
 	inputs := make([]uploadInput, len(files))
-	paths := make([]string, 0, len(files))
-	cleanup := func() {
-		for _, path := range paths {
-			_ = os.Remove(path)
-		}
-	}
-
 	for index, file := range files {
-		source, err := file.Open()
-		if err != nil {
-			cleanup()
-			return nil, func() {}, custom_errors.NewError(custom_errors.ErrInternalServer, "failed to open image file")
-		}
-
-		tempFile, err := os.CreateTemp("", "image-upload-*")
-		if err != nil {
-			_ = source.Close()
-			cleanup()
-			return nil, func() {}, custom_errors.NewError(custom_errors.ErrInternalServer, "failed to stage image upload")
-		}
-
-		_, copyErr := io.Copy(tempFile, source)
-		closeSourceErr := source.Close()
-		closeTempErr := tempFile.Close()
-		if copyErr != nil || closeSourceErr != nil || closeTempErr != nil {
-			_ = os.Remove(tempFile.Name())
-			cleanup()
-			return nil, func() {}, custom_errors.NewError(custom_errors.ErrInternalServer, "failed to stage image upload")
-		}
-
-		path := tempFile.Name()
-		paths = append(paths, path)
 		inputs[index] = uploadInput{
 			contentType: file.Header.Get("Content-Type"),
 			open: func() (io.ReadCloser, error) {
-				return os.Open(path)
+				return file.Open()
 			},
 		}
 	}
-
-	return inputs, cleanup, nil
+	return inputs
 }
 
 func (s *uploadJobService) GetUploadStatus(albumID string, jobID string) (*UploadJob, error) {

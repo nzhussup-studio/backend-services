@@ -87,6 +87,34 @@ func TestUpload_AlbumNotFound(t *testing.T) {
 	assert.True(t, errors.Is(err, custom_errors.ErrNotFound))
 }
 
+func TestUploadBatch_IncrementsMetadataOnceForAllImages(t *testing.T) {
+	basePath := t.TempDir()
+	albumID := "album1"
+	setupTestAlbum(t, basePath, albumID)
+	repo := &ImageRepository{Path: basePath, ApiBasePath: "/api/images"}
+	images := []*model.Image{
+		{Type: model.JPEG, Data: []byte("first")},
+		{Type: model.JPEG, Data: []byte("second")},
+		{Type: model.PNG, Data: []byte("third")},
+	}
+
+	saved, err := repo.UploadBatch(albumID, images)
+	assert.NoError(t, err)
+	assert.Len(t, saved, 3)
+	for _, image := range saved {
+		assert.NotEmpty(t, image.ID)
+		assert.Nil(t, image.Data)
+		_, statErr := os.Stat(filepath.Join(basePath, albumID, image.ID))
+		assert.NoError(t, statErr)
+	}
+
+	metaData, err := utils.LoadMetaData(filepath.Join(basePath, albumID, "meta.json"))
+	assert.NoError(t, err)
+	count, err := utils.GetImageCount(metaData)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, count)
+}
+
 func TestDelete_Success(t *testing.T) {
 	basePath := t.TempDir()
 	albumID := "album1"

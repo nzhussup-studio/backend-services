@@ -47,6 +47,15 @@ func (m *MockImageRepo) Upload(albumID string, image *model.Image) (*model.Image
 	return img, args.Error(1)
 }
 
+func (m *MockImageRepo) UploadBatch(albumID string, images []*model.Image) ([]*model.Image, error) {
+	args := m.Called(albumID, images)
+	var result []*model.Image
+	if res := args.Get(0); res != nil {
+		result = res.([]*model.Image)
+	}
+	return result, args.Error(1)
+}
+
 func (m *MockImageRepo) Delete(albumID string, imageID string) error {
 	args := m.Called(albumID, imageID)
 	return args.Error(0)

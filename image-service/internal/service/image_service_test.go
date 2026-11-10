@@ -198,13 +198,13 @@ func TestUploadImage_ConcurrentSuccess(t *testing.T) {
 		files = append(files, file)
 	}
 
+	savedImages := make([]*model.Image, numFiles)
+	for i := range savedImages {
+		savedImages[i] = &model.Image{ID: fmt.Sprintf("some-id-%d", i)}
+	}
 	mockImageRepo.
-		On("Upload", mock.Anything, mock.AnythingOfType("*model.Image")).
-		Run(func(args mock.Arguments) {
-			img := args.Get(1).(*model.Image)
-			img.ID = "some-id"
-		}).
-		Return(&model.Image{ID: "some-id"}, nil)
+		On("UploadBatch", "album1", mock.AnythingOfType("[]*model.Image")).
+		Return(savedImages, nil)
 
 	// Mock Redis Set and Del
 	mockRedis.On("Set", mock.MatchedBy(func(key string) bool {
